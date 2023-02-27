@@ -2,8 +2,10 @@ const { ethers } = require('hardhat')
 const fs = require('fs')
 
 async function main() {
+  const taxPercent = 7
+  const securityFee = 5
   const Contract = await ethers.getContractFactory('DappBnb')
-  const contract = await Contract.deploy()
+  const contract = await Contract.deploy(taxPercent, securityFee)
   await contract.deployed()
 
   const address = JSON.stringify({ address: contract.address }, null, 4)

@@ -131,7 +131,7 @@ const structureAppartments = (appartments) =>
     description: appartment.description,
     price: parseInt(appartment.price._hex) / 10 ** 18,
     deleted: appartment.deleted,
-    images: appartment.images,
+    images: appartment.image.split(','),
     rooms: Number(appartment.rooms),
     timestamp: new Date(appartment.timestamp * 1000).toDateString(),
     booked: appartment.booked,

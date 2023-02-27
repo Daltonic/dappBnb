@@ -5,8 +5,10 @@ const fs = require('fs')
 const toWei = (num) => ethers.utils.parseEther(num.toString())
 
 async function main() {
+  const taxPercent = 7
+  const securityFee = 5
   const Contract = await ethers.getContractFactory('DappBnb')
-  const contract = await Contract.deploy()
+  const contract = await Contract.deploy(taxPercent, securityFee)
   await contract.deployed()
 
   // Seeding begings here...
