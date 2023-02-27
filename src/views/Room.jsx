@@ -26,11 +26,11 @@ const Room = () => {
       />
 
       <RoomGrid
-        first={appartment?.images.split(',')[0]}
-        second={appartment?.images.split(',')[1]}
-        third={appartment?.images.split(',')[2]}
-        forth={appartment?.images.split(',')[3]}
-        fifth={appartment?.images.split(',')[4]}
+        first={appartment?.images[0]}
+        second={appartment?.images[1]}
+        third={appartment?.images[2]}
+        forth={appartment?.images[3]}
+        fifth={appartment?.images[4]}
       />
 
       <RoomDeescription

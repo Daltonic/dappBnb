@@ -110,7 +110,7 @@ const loadAppartments = async () => {
 const loadAppartment = async (id) => {
   try{
     const contract = getEtheriumContract();
-    const appartment = await contract.apartments(id);
+    const appartment = await contract.getAppartment(id);
     setGlobalState("appartment", structureAppartments([appartment])[0]);
   }catch (error) {
     console.log(error)  
