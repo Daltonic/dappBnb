@@ -42,8 +42,10 @@ const { setGlobalState, useGlobalState, getGlobalState } = createGlobalState({
   ],
   appartments: [],
   appartment: null,
+  reviews: [],
   connectedAccount: "",
   contract: null,
+  reviewModal:'scale-0',
 
 });
 

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { loadAppartment, updateAppartment } from '../Blockchain.services'
+import { loadAppartment, updateApartment } from '../Blockchain.services'
 import { useGlobalState } from '../store'
+import { toast } from 'react-toastify'
 
 const UpdateRoom = () => {
   const { id } = useParams()
@@ -38,9 +39,23 @@ const UpdateRoom = () => {
       price,
     }
 
-    await updateAppartment(params)
-    console.log('Appartment updated')
-    onReset()
+    // await toast.promise(
+    //   new Promise(async (resolve, reject) => {
+    //     await updateApartment(params)
+    //       .then(async () => {
+    //         onReset();
+    //         resolve();
+    //         loadAppartment(id)
+    //       })
+    //       .catch(() => reject());
+    //   }),
+    //   {
+    //     pending: "Approve transaction...",
+    //     success: "apartment updated successfully 👌",
+    //     error: "Encountered error 🤯",
+    //   }
+    // );
+    console.log(images)
   }
 
   const onReset = () => {

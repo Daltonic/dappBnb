@@ -41,7 +41,7 @@ const ButtonGroup = () => {
       shadow-sm overflow-hidden rounded-full cursor-pointer"
     >
       <div className="inline-flex" role="group">
-        <button
+        <Link to={'/'}
           type="button"
           className="
             rounded-l-full
@@ -60,7 +60,7 @@ const ButtonGroup = () => {
           "
         >
           Anywhere
-        </button>
+        </Link>
         <Link to={'/addRoom'}>
           <button
             type="button"

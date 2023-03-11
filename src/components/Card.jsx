@@ -23,7 +23,8 @@ const Card = ({ appartment }) => {
         <p className="text-gray-700">{appartment.timestamp}</p>
         <b className="flex justify-start items-center space-x-1 font-semibold">
           <FaEthereum />
-          <span>{appartment.price} night</span>
+          <span>{appartment.price} night {appartment.deleted}</span>
+         
         </b>
       </div>
     </div>
