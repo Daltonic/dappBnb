@@ -10,7 +10,7 @@ let tx
 
 const toWei = (num) => ethers.utils.parseEther(num.toString());
 
-const getEtheriumContract = () => {
+const getEtheriumContract = async () => {
   const connectedAccount = getGlobalState("connectedAccount");
 
   if (connectedAccount) {
@@ -66,16 +66,20 @@ const createAppartment = async ({
   images,
   price,
 }) => {
-  const connectedAccount = getGlobalState("connectedAccount");
-  const contract = getEtheriumContract();
-  price = toWei(price);
-  tx = await contract.createAppartment(name, description, images, rooms, price, {
-    from: connectedAccount,
-  });
-  tx.wait()
+  try{
+    const connectedAccount = getGlobalState("connectedAccount");
+    const contract = await getEtheriumContract();
+    price = toWei(price);
+    tx = await contract.createAppartment(name, description, images, rooms, price, {
+      from: connectedAccount,
+    });
+    tx.wait()
+  }catch(err) {
+    console.log(err)
+  }
 };
 
-const updateAppartment = async ({
+const updateApartment = async ({
   id,
   name,
   description,
@@ -83,45 +87,99 @@ const updateAppartment = async ({
   images,
   price,
 }) => {
-  const connectedAccount = getGlobalState("connectedAccount");
-  const contract = getEtheriumContract();
-  price = toWei(price);
-  tx = await contract.updateAppartment(id, name, description, images, rooms, price, {
-    from: connectedAccount,
-  });
-  tx.wait()
+  try{
+
+   const connectedAccount = getGlobalState("connectedAccount");
+   const contract = await getEtheriumContract();
+   price = toWei(price);
+   tx = await contract.updateAppartment(id, name, description, images, rooms, price, {
+     from: connectedAccount,
+   });
+   tx.wait()
+  }catch(err) {
+    console.log(err)
+  }
 };
 
 const deleteAppartment = async (id) => {
-  const connectedAccount = getGlobalState("connectedAccount");
-  const contract = getEtheriumContract();
-  tx = await contract.deleteAppartment(id, {
-    from: connectedAccount,
-  });
-  tx.wait()
+  try{
+    const connectedAccount = getGlobalState("connectedAccount");
+    const contract = await getEtheriumContract();
+    tx = await contract.deleteAppartment(id);
+    tx.wait()
+  }catch(err) {
+    reportError(err)
+  }
 };
 
 const loadAppartments = async () => {
-  const contract = getEtheriumContract();
-  const appartments = await contract.getApartments();
-  setGlobalState("appartments", structureAppartments(appartments));
+  try{
+    const contract = await getEtheriumContract();
+    const appartments = await contract.getApartments();
+    setGlobalState("appartments", structureAppartments(appartments));
+
+  }catch(err) {
+    reportError(err)
+  }
 };
 
 const loadAppartment = async (id) => {
   try{
-    const contract = getEtheriumContract();
+    const contract = await getEtheriumContract();
     const appartment = await contract.getAppartment(id);
     setGlobalState("appartment", structureAppartments([appartment])[0]);
   }catch (error) {
-    console.log(error)  
+    reportError(error)  
   }
 };
+
+const appartmentBooking = async (id,datesArray,startDate)=> {
+  try{
+    const contract = await getEtheriumContract()
+    const connectedAccount = getGlobalState('connectedAccount')
+
+    tx = await contract.bookApartment(id, datesArray, startDate, {
+      from: connectedAccount,
+    })
+
+  }catch(err) {
+    console.log(err)
+  }
+
+}
 
 
 const reportError = (error) => {
   console.log(error.message);
   throw new Error("No ethereum object.");
 };
+
+const addReview = async ({id,reviewText}) => {
+   
+    try{
+      if (!ethereum) return alert("Please install Metamask")
+      const contract = await getEtheriumContract()
+      tx = await contract.addReview(id,reviewText)
+      tx.wait()
+
+      await loadReviews(id)
+      
+      
+    }catch(err) {
+        reportError(err)
+    }
+    
+}
+
+const loadReviews = async (id) => {
+  try{
+    const contract = await getEtheriumContract();
+    const reviews = await contract.getReviews(id)
+    setGlobalState("reviews",structuredReviews(reviews))
+  }catch (error) {
+    console.log(error)  
+  }
+}
 
 const structureAppartments = (appartments) =>
   appartments.map((appartment) => ({
@@ -137,12 +195,24 @@ const structureAppartments = (appartments) =>
     booked: appartment.booked,
   }));
 
+  const structuredReviews = (reviews) =>
+    reviews.map((review) => ({
+      id:review.id.toNumber(),
+      appartmentId:review.appartmentId.toNumber(),
+      reviewText:review.reviewText,
+      owner: review.owner.toLowerCase(),
+      timestamp: new Date(review.timestamp * 1000).toDateString()
+  }))
+
 export {
   isWallectConnected,
   connectWallet,
   createAppartment,
   loadAppartments,
   loadAppartment,
-  updateAppartment,
+  updateApartment,
   deleteAppartment,
+  appartmentBooking,
+  loadReviews,
+  addReview
 };

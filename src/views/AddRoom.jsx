@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { FaTimes } from 'react-icons/fa'
-import { createAppartment } from '../Blockchain.services'
+import { createAppartment,loadAppartments } from '../Blockchain.services'
 import { truncate } from '../store'
+import { toast } from 'react-toastify'
+import { useNavigate } from 'react-router-dom'
 
 const AddRoom = () => {
   const [name, setName] = useState('')
@@ -11,6 +13,7 @@ const AddRoom = () => {
   const [images, setImages] = useState('')
   const [price, setPrice] = useState('')
   const [links, setLinks] = useState([])
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -25,9 +28,23 @@ const AddRoom = () => {
       price,
     }
 
-    await createAppartment(params)
-    console.log('Appartment created')
-    onReset()
+    await toast.promise(
+      new Promise(async (resolve, reject) => {
+        await createAppartment(params)
+          .then(async () => {
+            onReset();
+            resolve();
+            loadAppartments();
+            navigate('/')
+          })
+          .catch(() => reject());
+      }),
+      {
+        pending: "Approve transaction...",
+        success: "apartment added successfully 👌",
+        error: "Encountered error 🤯",
+      }
+    );
   }
 
   const addImage = () => {
@@ -41,6 +58,8 @@ const AddRoom = () => {
     links.splice(index, 1)
     setLinks(() => [...links])
   }
+
+  //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
 
   // const isValidImage = (url) => {
   //   let regex = /^https?:\/\/.*\/.*\.(png|gif|webp|jpeg|jpg)\??.*$/gim
