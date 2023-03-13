@@ -1,63 +1,63 @@
-import abi from "./abis/src/contracts/DappBnb.sol/DappBnb.json";
-import address from "./abis/contractAddress.json";
-import { getGlobalState, setGlobalState } from "./store";
-import { ethers } from "ethers";
+import abi from './abis/src/contracts/DappBnb.sol/DappBnb.json'
+import address from './abis/contractAddress.json'
+import { getGlobalState, setGlobalState } from './store'
+import { ethers } from 'ethers'
 
-const { ethereum } = window;
-const contractAddress = address.address;
-const contractAbi = abi.abi;
+const { ethereum } = window
+const contractAddress = address.address
+const contractAbi = abi.abi
 let tx
 
-const toWei = (num) => ethers.utils.parseEther(num.toString());
+const toWei = (num) => ethers.utils.parseEther(num.toString())
 
 const getEtheriumContract = async () => {
-  const connectedAccount = getGlobalState("connectedAccount");
+  const connectedAccount = getGlobalState('connectedAccount')
 
   if (connectedAccount) {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
-    const contract = new ethers.Contract(contractAddress, contractAbi, signer);
+    const provider = new ethers.providers.Web3Provider(ethereum)
+    const signer = provider.getSigner()
+    const contract = new ethers.Contract(contractAddress, contractAbi, signer)
 
-    return contract;
+    return contract
   } else {
-    return getGlobalState("contract");
+    return getGlobalState('contract')
   }
-};
+}
 
 const isWallectConnected = async () => {
   try {
-    if (!ethereum) return alert("Please install Metamask");
-    const accounts = await ethereum.request({ method: "eth_accounts" });
+    if (!ethereum) return alert('Please install Metamask')
+    const accounts = await ethereum.request({ method: 'eth_accounts' })
 
-    window.ethereum.on("chainChanged", (chainId) => {
-      window.location.reload();
-    });
+    window.ethereum.on('chainChanged', (chainId) => {
+      window.location.reload()
+    })
 
-    window.ethereum.on("accountsChanged", async () => {
-      setGlobalState("connectedAccount", accounts[0]);
-      await isWallectConnected();
-    });
+    window.ethereum.on('accountsChanged', async () => {
+      setGlobalState('connectedAccount', accounts[0])
+      await isWallectConnected()
+    })
 
     if (accounts.length) {
-      setGlobalState("connectedAccount", accounts[0]);
+      setGlobalState('connectedAccount', accounts[0])
     } else {
-      alert("Please connect wallet.");
-      console.log("No accounts found.");
+      alert('Please connect wallet.')
+      console.log('No accounts found.')
     }
   } catch (error) {
-    reportError(error);
+    reportError(error)
   }
-};
+}
 
 const connectWallet = async () => {
   try {
-    if (!ethereum) return alert("Please install Metamask");
-    const accounts = await ethereum.request({ method: "eth_requestAccounts" });
-    setGlobalState("connectedAccount", accounts[0]);
+    if (!ethereum) return alert('Please install Metamask')
+    const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
+    setGlobalState('connectedAccount', accounts[0])
   } catch (error) {
-    reportError(error);
+    reportError(error)
   }
-};
+}
 
 const createAppartment = async ({
   name,
@@ -66,18 +66,25 @@ const createAppartment = async ({
   images,
   price,
 }) => {
-  try{
-    const connectedAccount = getGlobalState("connectedAccount");
-    const contract = await getEtheriumContract();
-    price = toWei(price);
-    tx = await contract.createAppartment(name, description, images, rooms, price, {
-      from: connectedAccount,
-    });
-    tx.wait()
-  }catch(err) {
+  try {
+    const connectedAccount = getGlobalState('connectedAccount')
+    const contract = await getEtheriumContract()
+    price = toWei(price)
+    tx = await contract.createAppartment(
+      name,
+      description,
+      images,
+      rooms,
+      price,
+      {
+        from: connectedAccount,
+      }
+    )
+    await tx.wait()
+  } catch (err) {
     console.log(err)
   }
-};
+}
 
 const updateApartment = async ({
   id,
@@ -87,97 +94,97 @@ const updateApartment = async ({
   images,
   price,
 }) => {
-  try{
-
-   const connectedAccount = getGlobalState("connectedAccount");
-   const contract = await getEtheriumContract();
-   price = toWei(price);
-   tx = await contract.updateAppartment(id, name, description, images, rooms, price, {
-     from: connectedAccount,
-   });
-   tx.wait()
-  }catch(err) {
+  try {
+    const connectedAccount = getGlobalState('connectedAccount')
+    const contract = await getEtheriumContract()
+    price = toWei(price)
+    tx = await contract.updateAppartment(
+      id,
+      name,
+      description,
+      images,
+      rooms,
+      price,
+      {
+        from: connectedAccount,
+      }
+    )
+    await tx.wait()
+  } catch (err) {
     console.log(err)
   }
-};
+}
 
 const deleteAppartment = async (id) => {
-  try{
-    const connectedAccount = getGlobalState("connectedAccount");
-    const contract = await getEtheriumContract();
-    tx = await contract.deleteAppartment(id);
-    tx.wait()
-  }catch(err) {
+  try {
+    const connectedAccount = getGlobalState('connectedAccount')
+    const contract = await getEtheriumContract()
+    tx = await contract.deleteAppartment(id)
+    await tx.wait()
+  } catch (err) {
     reportError(err)
   }
-};
+}
 
 const loadAppartments = async () => {
-  try{
-    const contract = await getEtheriumContract();
-    const appartments = await contract.getApartments();
-    setGlobalState("appartments", structureAppartments(appartments));
-
-  }catch(err) {
+  try {
+    const contract = await getEtheriumContract()
+    const appartments = await contract.getApartments()
+    setGlobalState('appartments', structureAppartments(appartments))
+  } catch (err) {
     reportError(err)
   }
-};
+}
 
 const loadAppartment = async (id) => {
-  try{
-    const contract = await getEtheriumContract();
-    const appartment = await contract.getAppartment(id);
-    setGlobalState("appartment", structureAppartments([appartment])[0]);
-  }catch (error) {
-    reportError(error)  
+  try {
+    const contract = await getEtheriumContract()
+    const appartment = await contract.getApartment(id)
+    setGlobalState('appartment', structureAppartments([appartment])[0])
+  } catch (error) {
+    reportError(error)
   }
-};
+}
 
-const appartmentBooking = async (id,datesArray,startDate)=> {
-  try{
+const appartmentBooking = async (id, datesArray, startDate) => {
+  try {
     const contract = await getEtheriumContract()
     const connectedAccount = getGlobalState('connectedAccount')
 
     tx = await contract.bookApartment(id, datesArray, startDate, {
       from: connectedAccount,
     })
-
-  }catch(err) {
+    await tx.wait()
+  } catch (err) {
     console.log(err)
   }
-
 }
 
-
 const reportError = (error) => {
-  console.log(error.message);
-  throw new Error("No ethereum object.");
-};
+  console.log(error.message)
+  throw new Error('No ethereum object.')
+}
 
-const addReview = async ({id,reviewText}) => {
-   
-    try{
-      if (!ethereum) return alert("Please install Metamask")
-      const contract = await getEtheriumContract()
-      tx = await contract.addReview(id,reviewText)
-      tx.wait()
+const addReview = async ({ id, reviewText }) => {
+  try {
+    if (!ethereum) return alert('Please install Metamask')
+    const contract = await getEtheriumContract()
+    tx = await contract.addReview(id, reviewText)
+    await tx.wait()
 
-      await loadReviews(id)
-      
-      
-    }catch(err) {
-        reportError(err)
-    }
-    
+    await loadReviews(id)
+  } catch (err) {
+    reportError(err)
+  }
 }
 
 const loadReviews = async (id) => {
-  try{
-    const contract = await getEtheriumContract();
+  try {
+    const contract = await getEtheriumContract()
     const reviews = await contract.getReviews(id)
-    setGlobalState("reviews",structuredReviews(reviews))
-  }catch (error) {
-    console.log(error)  
+    setGlobalState('reviews', structuredReviews(reviews))
+  } catch (error) {
+    console.log(error)
   }
 }
 
@@ -189,19 +196,19 @@ const structureAppartments = (appartments) =>
     description: appartment.description,
     price: parseInt(appartment.price._hex) / 10 ** 18,
     deleted: appartment.deleted,
-    images: appartment.image.split(','),
+    images: appartment.images.split(','),
     rooms: Number(appartment.rooms),
     timestamp: new Date(appartment.timestamp * 1000).toDateString(),
     booked: appartment.booked,
-  }));
+  }))
 
-  const structuredReviews = (reviews) =>
-    reviews.map((review) => ({
-      id:review.id.toNumber(),
-      appartmentId:review.appartmentId.toNumber(),
-      reviewText:review.reviewText,
-      owner: review.owner.toLowerCase(),
-      timestamp: new Date(review.timestamp * 1000).toDateString()
+const structuredReviews = (reviews) =>
+  reviews.map((review) => ({
+    id: review.id.toNumber(),
+    appartmentId: review.appartmentId.toNumber(),
+    reviewText: review.reviewText,
+    owner: review.owner.toLowerCase(),
+    timestamp: new Date(review.timestamp * 1000).toDateString(),
   }))
 
 export {
@@ -214,5 +221,5 @@ export {
   deleteAppartment,
   appartmentBooking,
   loadReviews,
-  addReview
-};
+  addReview,
+}
