@@ -10,6 +10,7 @@ let tx
 
 const toWei = (num) => ethers.utils.parseEther(num.toString())
 
+
 const getEtheriumContract = async () => {
   const connectedAccount = getGlobalState('connectedAccount')
 
@@ -94,6 +95,7 @@ const updateApartment = async ({
   images,
   price,
 }) => {
+
   try {
     const connectedAccount = getGlobalState('connectedAccount')
     const contract = await getEtheriumContract()
@@ -116,6 +118,7 @@ const updateApartment = async ({
 }
 
 const deleteAppartment = async (id) => {
+
   try {
     const connectedAccount = getGlobalState('connectedAccount')
     const contract = await getEtheriumContract()
@@ -127,6 +130,7 @@ const deleteAppartment = async (id) => {
 }
 
 const loadAppartments = async () => {
+
   try {
     const contract = await getEtheriumContract()
     const appartments = await contract.getApartments()
@@ -137,6 +141,7 @@ const loadAppartments = async () => {
 }
 
 const loadAppartment = async (id) => {
+
   try {
     const contract = await getEtheriumContract()
     const appartment = await contract.getApartment(id)
@@ -146,19 +151,70 @@ const loadAppartment = async (id) => {
   }
 }
 
-const appartmentBooking = async (id, datesArray, startDate) => {
+
+const appartmentBooking = async (id, datesArray, amount) => {
   try {
     const contract = await getEtheriumContract()
     const connectedAccount = getGlobalState('connectedAccount')
 
-    tx = await contract.bookApartment(id, datesArray, startDate, {
-      from: connectedAccount,
+    tx = await contract.bookApartment(id, datesArray, {
+      from: connectedAccount, 
+      value: toWei(amount)
     })
     await tx.wait()
   } catch (err) {
     console.log(err)
   }
 }
+
+const getUnavailableDates = async (id) => {
+   const contract = await getEtheriumContract()
+
+   const timestamps = await contract.getUnavailableDates(id)
+   return timestamps
+}
+
+const returnSecurityFee = async () => {
+  try{
+    const contract = await getEtheriumContract()
+    const securityFee = await contract.returnSecurityFee()
+    return securityFee.toNumber()
+  }catch(err) {
+    reportError(err)
+  }
+}
+
+const returnTaxPercent = async () => {
+  try{
+    const contract = await getEtheriumContract()
+    const securityFee = await contract.returnTaxPercent()
+    return securityFee.toNumber()
+  }catch(err) {
+    reportError(err)
+  }
+}
+
+/*// assume you have the following mapping defined in your smart contract
+const bookedDates = { 
+  1: [1647368400, 1647982800],
+  2: [1649259600, 1652691600, 1653000000]
+};
+
+// assume you have a web3.js instance and a smart contract instance set up
+const contractInstance = new web3.eth.Contract(abi, contractAddress);
+
+async function getUnavailableDates(id) {
+  const dates = await contractInstance.methods.getUnavailableDates(id).call();
+  return dates;
+}
+
+// then you can use map to transform the returned array of dates
+const id = 2;
+const unavailableDates = await getUnavailableDates(id);
+const timestamps = unavailableDates.map(date => Number(date));
+console.log(timestamps);
+ */
+
 
 const reportError = (error) => {
   console.log(error.message)
@@ -179,6 +235,7 @@ const addReview = async ({ id, reviewText }) => {
 }
 
 const loadReviews = async (id) => {
+
   try {
     const contract = await getEtheriumContract()
     const reviews = await contract.getReviews(id)
@@ -222,4 +279,7 @@ export {
   appartmentBooking,
   loadReviews,
   addReview,
+  getUnavailableDates,
+  returnSecurityFee,
+  returnTaxPercent
 }

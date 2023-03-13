@@ -90,6 +90,7 @@ const RoomHeader = ({ name, id, owner }) => {
         new Promise(async (resolve, reject) => {
           await deleteAppartment(id)
             .then(async () => {
+              resolve();
               onReset()
               resolve()
               navigate('/')
@@ -102,8 +103,8 @@ const RoomHeader = ({ name, id, owner }) => {
           success: 'apartment deleted successfully 👌',
           error: 'Encountered error 🤯',
         }
-      )
-      alert('Room Deleted')
+      );
+      
     } else {
       console.log('Not deleted')
     }
@@ -130,7 +131,7 @@ const RoomHeader = ({ name, id, owner }) => {
               className="flex items-center justify-center space-x-1 text-red-500 cursor-pointer"
             >
               <MdDeleteOutline />
-              <span>Delete {id}</span>
+              <span>Delete</span>
             </div>
           </div>
         ) : null}
@@ -207,9 +208,7 @@ const RoomDeescription = ({ description, rooms, price }) => {
     setCheckOutDate(null)
   }
 
-  const remove = () => {
-    setTimestamps([])
-  }
+  
 
   return (
     <>
@@ -279,7 +278,7 @@ const RoomDeescription = ({ description, rooms, price }) => {
           <BiBookOpen className="text-4xl" />
           <div>
             <h1 className="text-xl font-semibold">Featured in</h1>
-            <p className="cursor-pointer" onClick={remove}>
+            <p className="cursor-pointer">
               Condé Nast Traveler, June 2021
             </p>
           </div>

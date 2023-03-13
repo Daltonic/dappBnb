@@ -24,7 +24,7 @@ const AddRoom = () => {
       name: `${name}, ${location}`,
       description,
       rooms,
-      images: links.join(','),
+      images: links.slice(0, 5).join(','),
       price,
     }
 
