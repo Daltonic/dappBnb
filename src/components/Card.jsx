@@ -5,7 +5,6 @@ import ImageSlider from './ImageSlider'
 
 
 const Card = ({ appartment }) => {
-  console.log(appartment.images)
   return (
     <div className="w-96 text-xl mb-20">
       <Link to={'/room/' + appartment.id}>

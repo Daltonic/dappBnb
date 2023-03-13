@@ -1,15 +1,9 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-<<<<<<< HEAD
     "C:\\Users\\DELL\\Desktop\\DappBnB_project\\src\\contracts\\DappBnb.sol": {
-      "lastModificationDate": 1678705099347,
-      "contentHash": "88e2626d64587d9e7fda3ceea82cf5e5",
-=======
-    "/Users/daltonic/Sites/dapps/dappBnb/src/contracts/DappBnb.sol": {
-      "lastModificationDate": 1678546852688,
-      "contentHash": "5fd8ddf6f6a3cd265457fa2a0c169a55",
->>>>>>> 24b1d20a9e3f6e713bba52d7f93dcb964f11764e
+      "lastModificationDate": 1678712088759,
+      "contentHash": "397cbc0d5fe12779388d8ce291c08ca4",
       "sourceName": "src/contracts/DappBnb.sol",
       "solcConfig": {
         "version": "0.8.11",
@@ -46,50 +40,8 @@
         "DappBnb"
       ]
     },
-<<<<<<< HEAD
     "C:\\Users\\DELL\\Desktop\\DappBnB_project\\node_modules\\@openzeppelin\\contracts\\utils\\Counters.sol": {
       "lastModificationDate": 1667211348035,
-=======
-    "/Users/daltonic/Sites/dapps/dappBnb/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
-      "lastModificationDate": 1666701545079,
-      "contentHash": "e436cea06129be2c73cda4b1acc848b5",
-      "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
-      "solcConfig": {
-        "version": "0.8.11",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../utils/Context.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "Ownable"
-      ]
-    },
-    "/Users/daltonic/Sites/dapps/dappBnb/node_modules/@openzeppelin/contracts/utils/Counters.sol": {
-      "lastModificationDate": 1666701545078,
->>>>>>> 24b1d20a9e3f6e713bba52d7f93dcb964f11764e
       "contentHash": "74654e3ae5d7f39555055dfe244dab7a",
       "sourceName": "@openzeppelin/contracts/utils/Counters.sol",
       "solcConfig": {
@@ -123,7 +75,6 @@
         "Counters"
       ]
     },
-<<<<<<< HEAD
     "C:\\Users\\DELL\\Desktop\\DappBnB_project\\node_modules\\@openzeppelin\\contracts\\security\\ReentrancyGuard.sol": {
       "lastModificationDate": 1667211349055,
       "contentHash": "92f9448b23a90ea3bb932ee55cc3ccce",
@@ -198,10 +149,6 @@
     },
     "C:\\Users\\DELL\\Desktop\\DappBnB_project\\node_modules\\@openzeppelin\\contracts\\utils\\Context.sol": {
       "lastModificationDate": 1667211348027,
-=======
-    "/Users/daltonic/Sites/dapps/dappBnb/node_modules/@openzeppelin/contracts/utils/Context.sol": {
-      "lastModificationDate": 1666701545078,
->>>>>>> 24b1d20a9e3f6e713bba52d7f93dcb964f11764e
       "contentHash": "5f2c5c4b6af2dd4551027144797bc8be",
       "sourceName": "@openzeppelin/contracts/utils/Context.sol",
       "solcConfig": {
@@ -233,44 +180,6 @@
       ],
       "artifacts": [
         "Context"
-<<<<<<< HEAD
-=======
-      ]
-    },
-    "/Users/daltonic/Sites/dapps/dappBnb/node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol": {
-      "lastModificationDate": 1666701545080,
-      "contentHash": "92f9448b23a90ea3bb932ee55cc3ccce",
-      "sourceName": "@openzeppelin/contracts/security/ReentrancyGuard.sol",
-      "solcConfig": {
-        "version": "0.8.11",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "ReentrancyGuard"
->>>>>>> 24b1d20a9e3f6e713bba52d7f93dcb964f11764e
       ]
     }
   }

@@ -1,6 +1,6 @@
 import { FaTimes } from 'react-icons/fa'
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams,useNavigate } from 'react-router-dom'
 import { loadAppartment, updateApartment } from '../Blockchain.services'
 import { truncate, useGlobalState } from '../store'
 import { toast } from 'react-toastify'
@@ -15,6 +15,7 @@ const UpdateRoom = () => {
   const [images, setImages] = useState('')
   const [price, setPrice] = useState('')
   const [links, setLinks] = useState([])
+  const navigate = useNavigate()
 
   useEffect(async () => {
     await loadAppartment(id)
@@ -42,34 +43,35 @@ const UpdateRoom = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!name || !location || !description || !rooms || !images || !price)
+    if (!name || !location || !description || !rooms || links.length != 5 || !price)
       return
     const params = {
       id,
       name: `${name}, ${location}`,
       description,
       rooms,
-      images,
+      images : links.slice(0, 5).join(','),
       price,
     }
 
-    // await toast.promise(
-    //   new Promise(async (resolve, reject) => {
-    //     await updateApartment(params)
-    //       .then(async () => {
-    //         onReset();
-    //         resolve();
-    //         loadAppartment(id)
-    //       })
-    //       .catch(() => reject());
-    //   }),
-    //   {
-    //     pending: "Approve transaction...",
-    //     success: "apartment updated successfully 👌",
-    //     error: "Encountered error 🤯",
-    //   }
-    // );
-    console.log(images)
+    await toast.promise(
+      new Promise(async (resolve, reject) => {
+        await updateApartment(params)
+          .then(async () => {
+            onReset();
+            loadAppartment(id)
+            navigate(`/room/${id}`)
+            resolve();
+          })
+          .catch(() => reject());
+      }),
+      {
+        pending: "Approve transaction...",
+        success: "apartment updated successfully 👌",
+        error: "Encountered error 🤯",
+      }
+    );
+    console.log(links)
   }
 
   const onReset = () => {
@@ -129,7 +131,6 @@ const UpdateRoom = () => {
               placeholder="Images"
               onChange={(e) => setImages(e.target.value)}
               value={images || ''}
-              required
             />
             {links?.length != 5 ? (
               <button
