@@ -1,5 +1,5 @@
-import { useEffect,useState } from 'react'
-import { FaEthereum, FaStar,FaTimes } from 'react-icons/fa'
+import { useEffect, useState } from 'react'
+import { FaEthereum, FaStar, FaTimes } from 'react-icons/fa'
 import { CiEdit } from 'react-icons/ci'
 import { FiCalendar } from 'react-icons/fi'
 import { MdDeleteOutline } from 'react-icons/md'
@@ -7,16 +7,16 @@ import { BiBookOpen, BiMedal } from 'react-icons/bi'
 import { BsChatLeft } from 'react-icons/bs'
 import Identicon from 'react-identicons'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import {
   deleteAppartment,
   loadAppartment,
   loadReviews,
   loadAppartments,
   appartmentBooking,
-} from "../Blockchain.services";
-import { useGlobalState, setGlobalState, truncate } from "../store";
+} from '../Blockchain.services'
+import { useGlobalState, setGlobalState, truncate } from '../store'
 import AddReview from '../components/AddReview'
 import moment from 'moment'
 import { toast } from 'react-toastify'
@@ -27,8 +27,8 @@ const Room = () => {
   const [appartment] = useGlobalState('appartment')
   const [reviews] = useGlobalState('reviews')
 
-  const handleReviewOpen = ()=> {
-      setGlobalState('reviewModal','scale-100')
+  const handleReviewOpen = () => {
+    setGlobalState('reviewModal', 'scale-100')
   }
 
   useEffect(async () => {
@@ -60,13 +60,11 @@ const Room = () => {
       <RoomReviews />
 
       <div className="flex justify-between flex-wrap">
-        {
-          reviews.length > 0
-          ? reviews.map((review,index) => (
-            <RoomComments key={index} review={review} />
-          ))
-          :"No reviews yet!"
-        }
+        {reviews.length > 0
+          ? reviews.map((review, index) => (
+              <RoomComments key={index} review={review} />
+            ))
+          : 'No reviews yet!'}
       </div>
       <p
         className="underline mt-11 cursor-pointer hover:text-blue-700"
@@ -75,11 +73,11 @@ const Room = () => {
         Drop your review
       </p>
       <AddReview />
-      <div className='fixed bottom-[6rem] right-4 px-4 py-3 rounded-full shadow-lg border-[0.1px] border-gray-300 flex  justify-center items-center space-x-3 cursor-pointer bg-white z-50 hover:bg-gray-100'>
-         <BsChatLeft className='text-3xl text-pink-500'/>
+      <div className="fixed bottom-[6rem] right-4 px-4 py-3 rounded-full shadow-lg border-[0.1px] border-gray-300 flex  justify-center items-center space-x-3 cursor-pointer bg-white z-50 hover:bg-gray-100">
+        <BsChatLeft className="text-3xl text-pink-500" />
       </div>
     </div>
-  );
+  )
 }
 
 const RoomHeader = ({ name, id, owner }) => {
@@ -93,17 +91,21 @@ const RoomHeader = ({ name, id, owner }) => {
           await deleteAppartment(id)
             .then(async () => {
               resolve();
+              onReset()
+              resolve()
               navigate('/')
               await loadAppartments()
             })
-            .catch(() => reject());
+            .catch(() => reject())
         }),
         {
-          pending: "Approve transaction...",
-          success: "apartment deleted successfully 👌",
-          error: "Encountered error 🤯",
+          pending: 'Approve transaction...',
+          success: 'apartment deleted successfully 👌',
+          error: 'Encountered error 🤯',
         }
       );
+      )
+      alert('Room Deleted')
     } else {
       console.log('Not deleted')
     }
@@ -146,62 +148,70 @@ const RoomGrid = ({ first, second, third, forth, fifth }) => {
         <img src={first} alt="" className="object-cover h-full" />
       </div>
       <div className="w-1/2 md:flex hidden flex-wrap">
-        <img src={second} alt="" className="object-cover w-1/2 h-64 pl-2 pb-1 pr-1" />
+        <img
+          src={second}
+          alt=""
+          className="object-cover w-1/2 h-64 pl-2 pb-1 pr-1"
+        />
         <img src={third} alt="" className="object-cover w-1/2 h-64 pl-1 pb-1" />
-        <img src={forth} alt="" className="object-cover w-1/2 h-64 pt-1 pl-2 pr-1" />
-        <img src={fifth} alt="" className="object-cover sm:w-2/5 md:w-1/2 h-64 pl-1 pt-1" />
+        <img
+          src={forth}
+          alt=""
+          className="object-cover w-1/2 h-64 pt-1 pl-2 pr-1"
+        />
+        <img
+          src={fifth}
+          alt=""
+          className="object-cover sm:w-2/5 md:w-1/2 h-64 pl-1 pt-1"
+        />
       </div>
     </div>
   )
 }
 
 const RoomDeescription = ({ description, rooms, price }) => {
-    const [checkInDate, setCheckInDate] = useState(null);
-    const [checkOutDate, setCheckOutDate] = useState(null);
-    const [timestamps, setTimestamps] = useState([]);
-    const {id} = useParams()
+  const [checkInDate, setCheckInDate] = useState(null)
+  const [checkOutDate, setCheckOutDate] = useState(null)
+  const [timestamps, setTimestamps] = useState([])
+  const { id } = useParams()
 
-    const handleCheckInDateChange = (date) => {
-      setCheckInDate(date);
-    };
+  const handleCheckInDateChange = (date) => {
+    setCheckInDate(date)
+  }
 
-    const handleCheckOutDateChange = (date) => {
+  const handleCheckOutDateChange = (date) => {
+    setCheckOutDate(date)
+  }
 
-      setCheckOutDate(date);
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!checkInDate || !checkOutDate) return
+    const start = moment(checkInDate)
+    const end = moment(checkOutDate)
+    const timestampArray = []
 
-      
-    };
-    
-    const handleSubmit = async (e) => {
-      e.preventDefault()
-      if(!checkInDate || !checkOutDate) return
-      const start = moment(checkInDate);
-      const end = moment(checkOutDate);
-      const timestampArray = [];
-
-      while (start <= end) {
-        timestampArray.push(start.valueOf());
-        start.add(1, "days");
-      }
-
-      // setTimestamps(timestampArray);
-      // const checkin = checkInDate.getTime();
-      // const checkout = checkOutDate.getTime();
-      // const nights = moment.duration(checkout - checkin).asDays();
-      // alert(`Number of nights: ${nights}`);
-      
-       
-      //  resetForm();
-    };
-
-    const resetForm = () => {
-       setCheckInDate(null)
-       setCheckOutDate(null)
+    while (start <= end) {
+      timestampArray.push(start.valueOf())
+      start.add(1, 'days')
     }
 
-    const remove = ()=> {
-       setTimestamps([])
-    }
+    // setTimestamps(timestampArray);
+    // const checkin = checkInDate.getTime();
+    // const checkout = checkOutDate.getTime();
+    // const nights = moment.duration(checkout - checkin).asDays();
+    // alert(`Number of nights: ${nights}`);
+
+    //  resetForm();
+  }
+
+  const resetForm = () => {
+    setCheckInDate(null)
+    setCheckOutDate(null)
+  }
+
+  const remove = () => {
+    setTimestamps([])
+  }
 
   return (
     <>
@@ -234,7 +244,7 @@ const RoomDeescription = ({ description, rooms, price }) => {
                 id="checkInDate"
                 selected={checkInDate}
                 onChange={handleCheckInDateChange}
-                placeholderText={"check-in"}
+                placeholderText={'check-in'}
                 dateFormat="yyyy-MM-dd"
                 minDate={new Date()}
                 excludeDates={timestamps}
@@ -247,7 +257,7 @@ const RoomDeescription = ({ description, rooms, price }) => {
                 id="checkOutDate"
                 selected={checkOutDate}
                 onChange={handleCheckOutDateChange}
-                placeholderText={"check-out"}
+                placeholderText={'check-out'}
                 dateFormat="yyyy-MM-dd"
                 minDate={checkInDate}
                 excludeDates={timestamps}
@@ -271,7 +281,9 @@ const RoomDeescription = ({ description, rooms, price }) => {
           <BiBookOpen className="text-4xl" />
           <div>
             <h1 className="text-xl font-semibold">Featured in</h1>
-            <p className='cursor-pointer' onClick={remove}>Condé Nast Traveler, June 2021</p>
+            <p className="cursor-pointer" onClick={remove}>
+              Condé Nast Traveler, June 2021
+            </p>
           </div>
         </div>
         <div className=" flex space-x-4">
@@ -293,11 +305,10 @@ const RoomDeescription = ({ description, rooms, price }) => {
               Free cancellation before Oct 17.
             </h1>
           </div>
-          
         </div>
       </div>
     </>
-  );
+  )
 }
 
 const RoomReviews = () => {
@@ -321,7 +332,9 @@ const RoomComments = ({ review }) => {
           className="rounded-full shadow-black shadow-sm"
         />
         <div>
-          <p className="text-xl font-semibold">{truncate(review.owner,4,4,11)} </p>
+          <p className="text-xl font-semibold">
+            {truncate(review.owner, 4, 4, 11)}{' '}
+          </p>
           <p className="text-slate-500 text-lg">{review.timestamp}</p>
         </div>
       </div>

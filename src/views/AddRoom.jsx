@@ -33,9 +33,9 @@ const AddRoom = () => {
         await createAppartment(params)
           .then(async () => {
             onReset();
-            resolve();
             loadAppartments();
             navigate('/')
+            resolve();
           })
           .catch(() => reject());
       }),

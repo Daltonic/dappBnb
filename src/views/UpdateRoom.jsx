@@ -1,7 +1,8 @@
+import { FaTimes } from 'react-icons/fa'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { loadAppartment, updateApartment } from '../Blockchain.services'
-import { useGlobalState } from '../store'
+import { truncate, useGlobalState } from '../store'
 import { toast } from 'react-toastify'
 
 const UpdateRoom = () => {
@@ -13,6 +14,7 @@ const UpdateRoom = () => {
   const [rooms, setRooms] = useState('')
   const [images, setImages] = useState('')
   const [price, setPrice] = useState('')
+  const [links, setLinks] = useState([])
 
   useEffect(async () => {
     await loadAppartment(id)
@@ -21,10 +23,22 @@ const UpdateRoom = () => {
       setLocation(appartment?.location)
       setDescription(appartment?.description)
       setRooms(appartment?.rooms)
-      setImages(appartment?.images)
       setPrice(appartment?.price)
+      setLinks(appartment?.images)
     }
   }, [appartment])
+
+  const addImage = () => {
+    if (links.length != 5) {
+      setLinks((prevState) => [...prevState, images])
+    }
+    setImages('')
+  }
+
+  const removeImage = (index) => {
+    links.splice(index, 1)
+    setLinks(() => [...links])
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -107,7 +121,7 @@ const UpdateRoom = () => {
 
           <div className="flex flex-row justify-between items-center border border-gray-300 p-2 rounded-xl mt-5">
             <input
-              className="block w-full text-sm
+              className="block text-sm flex-1
                 text-slate-500 bg-transparent border-0
                 focus:outline-none focus:ring-0"
               type="url"
@@ -117,6 +131,35 @@ const UpdateRoom = () => {
               value={images || ''}
               required
             />
+            {links?.length != 5 ? (
+              <button
+                onClick={addImage}
+                type="button"
+                className="p-2 bg-[#ff385c] text-white rounded-full text-sm"
+              >
+                Add image link
+              </button>
+            ) : null}
+          </div>
+
+          <div className="flex flex-row justify-start items-center rounded-xl mt-5 space-x-1 flex-wrap">
+            {links?.map((link, i) => (
+              <div
+                key={i}
+                className="p-2 rounded-full text-gray-500 bg-gray-200 font-semibold
+                flex items-center w-max cursor-pointer active:bg-gray-300
+                transition duration-300 ease space-x-2 text-xs"
+              >
+                <span>{truncate(link, 4, 4, 11)}</span>
+                <button
+                  onClick={() => removeImage(i)}
+                  type="button"
+                  className="bg-transparent hover focus:outline-none"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+            ))}
           </div>
 
           <div className="flex flex-row justify-between items-center border border-gray-300 p-2 rounded-xl mt-5">

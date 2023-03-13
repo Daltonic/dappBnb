@@ -139,12 +139,8 @@ contract DappBnb is Ownable, ReentrancyGuard {
                 j++;
             }
         }
-
-        return Apartments;
     }
-
-
-
+    
     function getApartment(uint id) public view returns (ApartmentStruct memory) {
         return apartments[id];
     }
