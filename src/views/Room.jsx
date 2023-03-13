@@ -92,7 +92,6 @@ const RoomHeader = ({ name, id, owner }) => {
         new Promise(async (resolve, reject) => {
           await deleteAppartment(id)
             .then(async () => {
-              onReset();
               resolve();
               navigate('/')
               await loadAppartments()
@@ -105,7 +104,6 @@ const RoomHeader = ({ name, id, owner }) => {
           error: "Encountered error 🤯",
         }
       );
-      alert('Room Deleted')
     } else {
       console.log('Not deleted')
     }

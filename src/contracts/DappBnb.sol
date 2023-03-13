@@ -1,13 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 <0.9.0;
 
-contract DappBnb {
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+contract DappBnb is Ownable, ReentrancyGuard {
+    using Counters for Counters.Counter;
+    Counters.Counter private _totalAppartments;
 
     struct ApartmentStruct {
         uint id;
         string name;
         string description;
-        string image;
+        string images;
         uint rooms;
         uint price;
         address owner;
@@ -20,10 +26,9 @@ contract DappBnb {
      struct BookingStruct {
         uint id;
         address tenant;
-        uint selected_date;
+        uint date;
         uint price;
         bool checked;
-        uint start_date;
         bool cancelled;
     }
 
@@ -39,24 +44,15 @@ contract DappBnb {
 
     uint public securityFee;
     uint public taxPercent;
-    uint public totalAppartments;
-    address public owner;
 
     mapping(uint => ApartmentStruct) apartments;
     mapping(uint => BookingStruct[]) bookingsOf;
-    mapping(uint => mapping(uint => bool)) public dateAvailability;
-    mapping(uint => mapping(uint => BookingStruct)) public bookingsByDate;
     mapping(uint => ReviewStruct[]) reviewsOf;
     mapping(uint => bool) appartmentExist;
-    mapping(uint => bool) bookedStartDate;
-
-    modifier ownerOnly() {
-        require(msg.sender == owner, "Reserved for owner only!");
-        _;
-    }
+    mapping(uint => uint[]) bookedDates;
+    mapping(uint => mapping(uint => bool)) isDateBooked;
 
     constructor(uint _taxPercent, uint _securityFee) {
-        owner = msg.sender;
         taxPercent = _taxPercent;
         securityFee = _securityFee;
     }
@@ -64,22 +60,22 @@ contract DappBnb {
     function createAppartment(
         string memory name,
         string memory description,
-        string memory image,
+        string memory images,
         uint rooms,
         uint price
     ) public {
         require(bytes(name).length > 0, "Name cannot be empty");
         require(bytes(description).length > 0, "Description cannot be empty");
-        require(bytes(image).length > 0, "Images cannot be empty");
+        require(bytes(images).length > 0, "Images cannot be empty");
         require(rooms > 0, "Rooms cannot be zero");
         require(price > 0 ether, "Price cannot be zero");
 
-
+        _totalAppartments.increment();
         ApartmentStruct memory lodge;
-        lodge.id = totalAppartments;
+        lodge.id = _totalAppartments.current();
         lodge.name = name;
         lodge.description = description;
-        lodge.image = image;
+        lodge.images = images;
         lodge.rooms = rooms;
         lodge.price = price;
         lodge.owner = msg.sender;
@@ -88,8 +84,7 @@ contract DappBnb {
 
         appartmentExist[lodge.id] = true;
 
-        apartments[totalAppartments] = lodge;
-        totalAppartments++;
+        apartments[_totalAppartments.current()] = lodge;
     }
     
     function updateAppartment
@@ -97,157 +92,144 @@ contract DappBnb {
         uint id,
         string memory name,
         string memory description,
-        string memory image,
+        string memory images,
         uint rooms,
         uint price
-    ) public returns(bool) {
+    ) public {
         require(appartmentExist[id] == true, "Appartment not found");
         require(msg.sender == apartments[id].owner, "Unauthorized personnel, owner only");
         require(bytes(name).length > 0, "Name cannot be empty");
         require(bytes(description).length > 0, "Description cannot be empty");
-        require(bytes(image).length > 0, "Images cannot be empty");
+        require(bytes(images).length > 0, "Images cannot be empty");
         require(rooms > 0, "Rooms cannot be zero");
         require(price > 0 ether, "Price cannot be zero");
         
         ApartmentStruct memory lodge = apartments[id];
         lodge.name = name;
         lodge.description = description;
-        lodge.image = image;
+        lodge.images = images;
         lodge.rooms = rooms;
         lodge.price = price;
         
         apartments[id] = lodge;
-        return true;
     }
 
-    function deleteAppartment(uint id) public returns(bool) {
+    function deleteAppartment(uint id) public {
         require(appartmentExist[id] == true, "Appartment not found");
+        require(apartments[id].owner == msg.sender, "Unauthorized entity");
 
         appartmentExist[id] = false;
         apartments[id].deleted = true;
-
-        return true;
     }
 
-    
+ 
 
-    function getApartments() public view returns (ApartmentStruct[] memory appartments) {
-        appartments = new ApartmentStruct[](totalAppartments);
-        
-        for (uint i = 0; i < totalAppartments; i++) {
+    function getApartments() public view returns (ApartmentStruct[] memory Apartments) {
+        uint256 totalSpace;
+        for (uint i = 1; i <= _totalAppartments.current(); i++) {
+            if(!apartments[i].deleted) totalSpace++;
+        }
+
+        Apartments = new ApartmentStruct[](totalSpace);
+
+        uint256 j = 0;
+        for (uint i = 1; i <= _totalAppartments.current(); i++) {
             if(!apartments[i].deleted) {
-                appartments[i] = apartments[i];
+                Apartments[j] = apartments[i];
+                j++;
             }
         }
+
+        return Apartments;
     }
 
-    function getAppartment(uint id) public view returns (ApartmentStruct memory) {
+
+
+    function getApartment(uint id) public view returns (ApartmentStruct memory) {
         return apartments[id];
     }
 
-    function getBookings(uint id) public view returns (BookingStruct[] memory) {
-        return bookingsOf[id];
+    function bookApartment(uint id, uint[] memory dates) public payable {    
+        require(appartmentExist[id], "Apartment not found!");
+        require(msg.value >= apartments[id].price * dates.length + securityFee, "Insufficient fund!");
+        require(datesAreCleared(id, dates), "Booked date found among dates!");
+
+        for (uint i = 0; i < dates.length; i++) {
+            BookingStruct memory booking;
+            booking.id = bookingsOf[id].length;
+            booking.tenant = msg.sender;
+            booking.date = dates[i];
+            booking.price = apartments[id].price;
+            bookingsOf[id].push(booking);            
+            isDateBooked[id][dates[i]] = true;
+            bookedDates[id].push(dates[i]);
+        }
     }
 
-    
-
-    // function bookApartment(uint id, uint[] memory selected_dates) public payable returns (bool) {    
-    //    require(appartmentExist[id],"Appartment not found!");
-    //    require(msg.value >= apartments[id].price + securityFee,"Insufficient fund!");
-
-    //    for (uint i = 0; i < selected_dates.length; i++) {
-    //         BookingStruct memory booking;
-    //         booking.id = bookingsOf[id].length;
-    //         booking.tenant = msg.sender;
-    //         booking.selected_date = selected_dates[i];
-    //         booking.price = apartments[id].price;
-    //     }
-
-    //    return true;
-    // }
-
-    function bookApartment(uint id, uint[] memory selected_dates, uint start_date) public payable returns (bool) {    
-    require(appartmentExist[id], "Apartment not found!");
-    require(msg.value >= apartments[id].price + securityFee, "Insufficient fund!");
-
-    for (uint i = 0; i < selected_dates.length; i++) {
-        require(!dateAvailability[id][selected_dates[i]], "Selected date is not available");
-        BookingStruct memory booking;
-        booking.id = bookingsOf[id].length;
-        booking.tenant = msg.sender;
-        booking.selected_date = selected_dates[i];
-        booking.price = apartments[id].price;
-        booking.start_date = start_date;
-        bookingsOf[id].push(booking);
-        dateAvailability[id][selected_dates[i]] = true;
-        bookingsByDate[id][selected_dates[i]] = booking;
+    function datesAreCleared(uint id, uint[] memory dates) internal view returns (bool) {
+        bool lastCheck = true;
+        for(uint i=0; i < dates.length; i++) {
+            for(uint j=0; j < bookedDates[id].length; j++) {
+                if(dates[i] == bookedDates[id][j]) lastCheck = false;
+            }
+        }
+        return lastCheck;
     }
 
-    return true;
-}
-
-
-
-    function checkInApartment(uint id, uint bookingId) public returns (bool) {    
+    function checkInApartment(uint id, uint bookingId) public {    
        require(msg.sender == bookingsOf[id][bookingId].tenant, "Unauthorized tenant!");
        require(!bookingsOf[id][bookingId].checked, "Apartment already checked on this date!");
        
        bookingsOf[id][bookingId].checked = true;
        uint price = bookingsOf[id][bookingId].price;
-       uint fee = price * taxPercent / 100;
-       bookedStartDate[bookingsOf[id][bookingId].start_date] = false;
+       uint fee = (price * taxPercent) / 100;
     
        payTo(apartments[id].owner, (price - fee));
-       payTo(owner, fee);
+       payTo(owner(), fee);
        payTo(msg.sender, securityFee);
-       return true;
     }
 
-    function refundBooking(uint id, uint bookingId,uint selected_date) public returns (bool) {    
-       require(msg.sender == bookingsOf[id][bookingId].tenant, "Unauthorized tenant!");
-       require(!bookingsOf[id][bookingId].checked, "Apartment already checked on this date!");
-       
+    function refundBooking(uint id, uint bookingId, uint date) public nonReentrant {    
+        require(!bookingsOf[id][bookingId].checked, "Apartment already checked on this date!");
+
+        if(msg.sender != owner()) {
+            require(msg.sender == bookingsOf[id][bookingId].tenant, "Unauthorized tenant!");
+            require(bookingsOf[id][bookingId].date > currentTime(), "Can no longer refund, booking date started");
+        }
 
         bookingsOf[id][bookingId].cancelled = true;
-        dateAvailability[id][selected_date] = false;
+        isDateBooked[id][date] = false;
+
+        bookedDates[id][bookingId] = bookedDates[id][bookedDates[id].length - 1];
+        bookedDates[id].pop();
 
         uint price = bookingsOf[id][bookingId].price;
         uint fee = securityFee * taxPercent / 100;
     
         payTo(apartments[id].owner, (securityFee - fee));
-        payTo(owner, fee);
+        payTo(owner(), fee);
         payTo(msg.sender, price);
-        return true;
     }
 
-function getUnavailableDates(uint id) public view returns (uint[] memory unavailableDates) {
-        BookingStruct[] memory bookings = bookingsOf[id];
-        uint count = 0;
+    function getUnavailableDates(uint id) public view returns (uint[] memory) {
+        return bookedDates[id];
+    }
 
-        for (uint i = 0; i < bookings.length; i++) {
-            if (!bookings[i].cancelled) {
-                count++;
-            }
-        }
-
-        unavailableDates = new uint[](count);
-        uint index = 0;
-        for (uint i = 0; i < bookings.length; i++) {
-            if (!bookings[i].cancelled) {
-                unavailableDates[index] = bookings[i].selected_date;
-                index++;
-            }
-        }
+   function getBookings(uint id) public view returns (BookingStruct[] memory) {
+        return bookingsOf[id];
+   }
+   
+   function getBooking(uint id, uint bookingId) public view returns (BookingStruct memory) {
+        return bookingsOf[id][bookingId];
    }
 
-    function updateSecurityFee(uint newFee) public ownerOnly {
+    function updateSecurityFee(uint newFee) public onlyOwner {
        require(newFee > 0);
        securityFee = newFee;
        emit SecurityFeeUpdated(newFee);
     }
 
-    function updateTaxPercent(uint newTaxPercent) public {
-       require(msg.sender == owner); // Only the owner can update the tax fee
+    function updateTaxPercent(uint newTaxPercent) public onlyOwner {
        taxPercent = newTaxPercent;
     }
 
@@ -256,7 +238,7 @@ function getUnavailableDates(uint id) public view returns (uint[] memory unavail
         require(success);
     }
 
-    function addReview(uint appartmentId,string memory reviewText) public returns(bool) {
+    function addReview(uint appartmentId, string memory reviewText) public {
         require(appartmentExist[appartmentId] == true,"Appartment not available");
         require(bytes(reviewText).length > 0, "Review text cannot be empty");
 
@@ -269,121 +251,21 @@ function getUnavailableDates(uint id) public view returns (uint[] memory unavail
         review.owner = msg.sender;
 
         reviewsOf[appartmentId].push(review);
-        return true;
     }
 
     function getReviews(uint appartmentId) public view returns(ReviewStruct[] memory) {
         return reviewsOf[appartmentId];
     }
 
-
-
-
-
-    /*
-    struct Booking {
-        uint id;
-        address tenant;
-        uint selected_date;
-        uint price;
-        bool checked;
-        uint start_date;
-        bool cancelled;
+    function currentTime() internal view returns (uint256) {
+        uint256 newNum = (block.timestamp * 1000) + 1000;
+        return newNum;
     }
 
-    struct BookingStruct {
-        uint id;
-        address tenant;
-        uint selected_date;
-        uint price;
-        bool checked;  
-        uint start_date;
+    function returnSecurityFee() public view returns(uint) {
+        return securityFee;
     }
-
-mapping(uint => Booking[]) public bookingsOf;
-mapping(uint => mapping(uint => bool)) public dateAvailability;
-mapping(uint => mapping(uint => Booking)) public bookingsByDate;
-
-function bookApartment(uint id, uint[] memory selected_dates, uint start_date) public payable returns (bool) {    
-    require(apartmentExists[id], "Apartment not found!");
-    require(msg.value >= apartments[id].price + securityFee, "Insufficient fund!");
-
-    for (uint i = 0; i < selected_dates.length; i++) {
-        require(!dateAvailability[id][selected_dates[i]], "Selected date is not available");
-        Booking memory booking;
-        booking.id = bookingsOf[id].length;
-        booking.tenant = msg.sender;
-        booking.selected_date = selected_dates[i];
-        booking.price = apartments[id].price;
-        booking.checked = false;
-        booking.start_date = start_date;
-        booking.cancelled = false;
-        bookingsOf[id].push(booking);
-        dateAvailability[id][selected_dates[i]] = true;
-        bookingsByDate[id][selected_dates[i]] = booking;
+    function returnTaxPercent() public view returns(uint) {
+        return taxPercent;
     }
-
-    return true;
-}
-
-function cancelBooking(uint id, uint selected_date) public returns (bool) {
-    require(bookingsByDate[id][selected_date].tenant == msg.sender, "Only the tenant can cancel a booking");
-    require(!bookingsByDate[id][selected_date].checked, "Booking has already started");
-    require(!bookingsByDate[id][selected_date].cancelled, "Booking has already been cancelled");
-
-    uint booking_id = bookingsByDate[id][selected_date].id;
-    uint refundAmount = bookingsOf[id][booking_id].price;
-
-    bookingsOf[id][booking_id].cancelled = true;
-    dateAvailability[id][selected_date] = false;
-    delete bookingsByDate[id][selected_date];
-
-    payable(msg.sender).transfer(refundAmount);
-
-    return true;
-}
-
-function getUnavailableDates(uint id) public view returns (uint[] memory) {
-    uint[] memory dateAvailability = new uint[](bookingsOf[id].length);
-    uint count = 0;
-
-    for (uint i = 0; i < bookingsOf[id].length; i++) {
-        if (!bookingsOf[id][i].cancelled) {
-            dateAvailability[count] = bookingsOf[id][i].selected_date;
-            count++;
-        }
-    }
-
-    uint[] memory result = new uint[](count);
-    for (uint i = 0; i < count; i++) {
-        result[i] = dateAvailability[i];
-    }
-
-    return result;
-}
-
-
-    function bookApartment(uint id, uint start_date, uint num_days) public payable returns (bool) { 
-        require(appartmentExist[id], "Apartment not found!");
-        require(msg.value >= apartments[id].price * num_days + securityFee, "Insufficient fund!");
-
-        if(!bookedStartDate[start_date]) {
-            bookedStartDate[start_date] == true;
-            for (uint i = 1; i <= num_days; i++) {
-                BookingStruct memory booking;
-                booking.id = bookingsOf[id].length;
-                booking.tenant = msg.sender;
-                booking.timeframeInDays = start_date + (i * 1 days);
-                booking.price = apartments[id].price;
-                booking.start_date = start_date;
-                bookingsOf[id].push(booking);
-           }
-        }else if(bookedStartDate[start_date] == true){
-            revert("Date has been booked already!");
-        }
-
-        return true;
-    }
-    
-     */
 }
