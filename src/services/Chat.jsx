@@ -113,6 +113,17 @@ const getConversations = async () => {
   })
 }
 
+const listenForMessage = async (listenerID) => {
+  return new Promise(async (resolve, reject) => {
+    CometChat.addMessageListener(
+      listenerID,
+      new CometChat.MessageListener({
+        onTextMessageReceived: (message) => resolve(message),
+      })
+    );
+  });
+};
+
 export {
   initCometChat,
   loginWithCometChat,
@@ -123,5 +134,5 @@ export {
   getConversations,
   isUserLoggedIn,
   getUser,
-  CometChat,
+  listenForMessage,
 }

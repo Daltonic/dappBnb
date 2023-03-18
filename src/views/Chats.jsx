@@ -1,95 +1,113 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { loadAppartment } from "../Blockchain.services";
-import { setGlobalState, useGlobalState, getGlobalState, truncate } from "../store";
-import Identicon from "react-identicons";
-import { CometChat, getMessages, sendMessage } from "../services/Chat";
+import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
+import { setGlobalState, useGlobalState, truncate } from '../store'
+import Identicon from 'react-identicons'
+import { getMessages, sendMessage, listenForMessage } from '../services/Chat'
 
 const Chats = () => {
-  const [loaded, setLoaded] = useState(false);
-  const [appartment] = useGlobalState("appartment");
-  const connectedAccount = getGlobalState("connectedAccount");
-  const {id} = useParams()
+  const { id } = useParams()
   const [messages] = useGlobalState('messages')
-  const [message,setMessage] = useState('')
+  const [message, setMessage] = useState('')
 
   useEffect(async () => {
-    await getMessages(`${id}`)
-      .then((msgs) => {
-        if (msgs.length > 0) {
-          setGlobalState("messages", msgs);
-        } else {
-          console.log("empty");
-        }
-      })
-      .catch((error) => {
-        console.log("Error fetching messages:", error);
-        alert("Sorry, an error occurred while fetching messages for the user.");
-      });
-
-
-  }, []);
-
-
+    await getMessages(`${id}`).then((msgs) => setGlobalState('messages', msgs))
+    await handleListener()
+  }, [])
 
   const onSendMessage = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
+    if (!message) return
 
-    if (!message) {
-      return;
-    }
-    try {
-      const user = await CometChat.getUser(id);
-      if (user) {
-        const msg = await sendMessage(id, message);
-        setGlobalState("messages", (prevMessages) => [...prevMessages, msg]);
-        setMessage("");
-        console.log(messages);
-      } else {
-        alert("Sorry, the receiver user does not exist.");
-      }
-    } catch (error) {
-      console.log("User validation failed with error:", error);
-    }
-  };
+    await sendMessage(id, message).then((msg) => {
+      setGlobalState('messages', (prevState) => [...prevState, msg])
+      setMessage('')
+      scrollToEnd()
+    })
+  }
 
+  const handleListener = async () => {
+    await listenForMessage(id).then((msg) => {
+      setGlobalState('messages', (prevState) => [...prevState, msg])
+      scrollToEnd()
+    })
+  }
 
-  return  (
-    <div className="w-4/5 mx-auto mt-8">
-      <h1 className="text-2xl font-bold text-center">Chats</h1>
-      <div className="h-[40vh] overflow-y-scroll w-full .scroll-bar">
-        {
-          messages.length > 0 
-          ? messages.map((msg,index) => (
-            <Message message={msg.text} uid={msg.sender.uid} key={index}/>
-          ))
-          : 'No message yet'
-        }
+  const scrollToEnd = () => {
+    const elmnt = document.getElementById('messages-container')
+    elmnt.scrollTop = elmnt.scrollHeight
+  }
+
+  return (
+    <div
+      className="bg-gray-100 rounded-2xl h-[calc(100vh_-_13rem)]
+    w-4/5 flex flex-col justify-between relative mx-auto mt-8 border-t border-t-gray-100"
+    >
+      <h1 className="text-2xl font-bold text-center absolute top-0
+      bg-white w-full shadow-sm py-2">
+        Chats
+      </h1>
+      <div
+        id="messages-container"
+        className="h-[calc(100vh_-_20rem)] overflow-y-scroll w-full p-4 pt-16"
+      >
+        {messages.length > 0
+          ? messages.map((msg, index) => (
+              <Message message={msg.text} uid={msg.sender.uid} key={index} />
+            ))
+          : 'No message yet'}
       </div>
-      <form onSubmit={onSendMessage} className='w-full'>
+      <form onSubmit={onSendMessage} className="w-full">
         <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="h-full w-full py-5 focus:outline-none focus:ring-0 rounded-md border-none bg-[rgba(0,0,0,0.7)] text-white placeholder-white"
-            placeholder="Leave a message..."
-          />
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="h-full w-full py-5 focus:outline-none focus:ring-0 rounded-md
+          border-none bg-[rgba(0,0,0,0.7)] text-white placeholder-white"
+          placeholder="Leave a message..."
+        />
       </form>
     </div>
   )
-};
-
+}
 
 const Message = ({ message, uid }) => {
-  return (
-    <div className="flex items-center space-x-4 mb-3">
-      <div className="flex items-center space-x-2">
-        <Identicon string={uid} size={30} className="rounded-full" />
-        <p className="font-bold text-sm">{truncate(uid, 4, 4, 11)}</p>
-      </div>
-      <p className="text-sm">{message}</p>
-    </div>
-  );
-};
+  const [connectedAccount] = useGlobalState('connectedAccount')
 
-export default Chats;
+  return uid == connectedAccount ? (
+    <div className="flex justify-end items-center space-x-4 mb-3">
+      <div
+        className="flex flex-col bg-white py-2 px-4 space-y-2
+      rounded-full rounded-br-none shadow-sm"
+      >
+        <div className="flex items-center space-x-2">
+          <Identicon
+            string={uid}
+            size={20}
+            className="rounded-full bg-white shadow-sm"
+          />
+          <p className="font-bold text-sm">{truncate(uid, 4, 4, 11)}</p>
+        </div>
+        <p className="text-sm">{message}</p>
+      </div>
+    </div>
+  ) : (
+    <div className="flex justify-start items-center space-x-4 mb-3">
+      <div
+        className="flex flex-col bg-white py-2 px-4 space-y-2
+      rounded-full rounded-bl-none shadow-sm"
+      >
+        <div className="flex items-center space-x-2">
+          <Identicon
+            string={uid}
+            size={20}
+            className="rounded-full bg-white shadow-sm"
+          />
+          <p className="font-bold text-sm">{truncate(uid, 4, 4, 11)}</p>
+        </div>
+        <p className="text-sm">{message}</p>
+      </div>
+    </div>
+  )
+}
+
+export default Chats
