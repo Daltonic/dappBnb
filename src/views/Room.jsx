@@ -158,7 +158,7 @@ const RoomButtons = ({ id, owner }) => {
           to={`/chats/${owner}`}
           className="p-2 rounded-md shadow-lg border-[0.1px]
           border-gray-300 flex justify-start items-center space-x-1
-          bg-white z-50 hover:bg-gray-100"
+          bg-white hover:bg-gray-100"
         >
           <BsChatLeft size={15} className="text-pink-500" />
           <small>Chats</small>
@@ -168,7 +168,7 @@ const RoomButtons = ({ id, owner }) => {
           <button
             className="p-2 rounded-md shadow-lg border-[0.1px]
             border-gray-300 flex justify-start items-center space-x-1
-            bg-white z-50 hover:bg-gray-100"
+            bg-white hover:bg-gray-100"
             onClick={handleSignUp}
           >
             <small>Sign up</small>
@@ -176,7 +176,7 @@ const RoomButtons = ({ id, owner }) => {
           <button
             className="p-2 rounded-md shadow-lg border-[0.1px]
             border-gray-300 flex justify-start items-center space-x-1
-            bg-white z-50 hover:bg-gray-100"
+            bg-white hover:bg-gray-100"
             onClick={handleLogin}
           >
             <small>Login to chat</small>
@@ -190,7 +190,7 @@ const RoomButtons = ({ id, owner }) => {
             to={'/editRoom/' + id}
             className="p-2 rounded-md shadow-lg border-[0.1px]
             border-gray-500 flex justify-start items-center space-x-1
-            bg-gray-500 z-50 hover:bg-transparent hover:text-gray-500 text-white"
+            bg-gray-500 hover:bg-transparent hover:text-gray-500 text-white"
           >
             <CiEdit size={15} />
             <small>Edit</small>
@@ -198,7 +198,7 @@ const RoomButtons = ({ id, owner }) => {
           <button
             className="p-2 rounded-md shadow-lg border-[0.1px]
             border-pink-500 flex justify-start items-center space-x-1
-            bg-pink-500 z-50 hover:bg-transparent hover:text-pink-500 text-white"
+            bg-pink-500 hover:bg-transparent hover:text-pink-500 text-white"
             onClick={handleDelete}
           >
             <MdDeleteOutline size={15} />
