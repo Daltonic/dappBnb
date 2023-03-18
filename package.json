@@ -6,8 +6,7 @@
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
-    "eject": "react-scripts eject",
-    "deploy": "yarn hardhat run scripts/deploy.js --network localhost"
+    "eject": "react-scripts eject"
   },
   "dependencies": {
     "@cometchat-pro/chat": "^3.0.11",
