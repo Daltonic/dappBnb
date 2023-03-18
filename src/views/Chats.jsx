@@ -1,17 +1,33 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { setGlobalState, useGlobalState, truncate } from '../store'
 import Identicon from 'react-identicons'
-import { getMessages, sendMessage, listenForMessage } from '../services/Chat'
+import {
+  getMessages,
+  sendMessage,
+  listenForMessage,
+  isUserLoggedIn,
+} from '../services/Chat'
+import { toast } from 'react-toastify'
 
 const Chats = () => {
   const { id } = useParams()
   const [messages] = useGlobalState('messages')
   const [message, setMessage] = useState('')
+  const navigate = useNavigate()
 
   useEffect(async () => {
-    await getMessages(`${id}`).then((msgs) => setGlobalState('messages', msgs))
-    await handleListener()
+    await isUserLoggedIn()
+      .then(async () => {
+        await getMessages(id).then((msgs) => setGlobalState('messages', msgs))
+        await handleListener()
+      })
+      .catch((error) => {
+        if (error.code == 'USER_NOT_LOGED_IN') {
+          navigate('/')
+          toast.warning('You must be logged in first')
+        }
+      })
   }, [])
 
   const onSendMessage = async (e) => {
@@ -42,8 +58,10 @@ const Chats = () => {
       className="bg-gray-100 rounded-2xl h-[calc(100vh_-_13rem)]
     w-4/5 flex flex-col justify-between relative mx-auto mt-8 border-t border-t-gray-100"
     >
-      <h1 className="text-2xl font-bold text-center absolute top-0
-      bg-white w-full shadow-sm py-2">
+      <h1
+        className="text-2xl font-bold text-center absolute top-0
+      bg-white w-full shadow-sm py-2"
+      >
         Chats
       </h1>
       <div

@@ -1,59 +1,57 @@
-import { useState, useEffect } from "react";
-import { FaTimes } from "react-icons/fa";
-import { useParams } from "react-router-dom";
-import { setGlobalState, useGlobalState, getGlobalState } from "../store";
+import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
+import { useGlobalState, getGlobalState } from '../store'
+import { toast } from 'react-toastify'
 import {
   getBookings,
   getUnavailableDates,
   hasBookedDateReached,
   refund,
   loadAppartment,
-  claimFunds
-} from "../Blockchain.services";
-import { toast } from "react-toastify";
+  claimFunds,
+} from '../Blockchain.services'
 
 const Bookings = () => {
-  const [loaded, setLoaded] = useState(false);
-  const connectedAccount = getGlobalState("connectedAccount");
-  const [bookings] = useGlobalState("bookings");
-  const [appartment] = useGlobalState("appartment");
-  const { id } = useParams();
+  const [loaded, setLoaded] = useState(false)
+  const connectedAccount = getGlobalState('connectedAccount')
+  const [bookings] = useGlobalState('bookings')
+  const [appartment] = useGlobalState('appartment')
+  const { id } = useParams()
 
   useEffect(async () => {
-    await getBookings(id).then(() => setLoaded(true));
-    await loadAppartment(id);
-  }, []);
+    await getBookings(id).then(() => setLoaded(true))
+    await loadAppartment(id)
+  }, [])
 
   const isDayAfter = (booking) => {
-    const bookingDate = new Date(booking.date).getTime();
-    const today = new Date().getTime();
-    const oneDay = 24 * 60 * 60 * 1000; // one day in milliseconds
-    return today > bookingDate + oneDay && !booking.checked;
-  };
+    const bookingDate = new Date(booking.date).getTime()
+    const today = new Date().getTime()
+    const oneDay = 24 * 60 * 60 * 1000
+    return today > bookingDate + oneDay && !booking.checked
+  }
 
   const handleClaimFunds = async (booking) => {
     const params = {
       id,
       bookingId: booking.id,
-    };
+    }
 
     await toast.promise(
       new Promise(async (resolve, reject) => {
         await claimFunds(params)
           .then(async () => {
-            await getUnavailableDates(id);
-            await getBookings(id);
-            resolve();
+            await getUnavailableDates(id)
+            await getBookings(id)
+            resolve()
           })
-          .catch(() => reject());
+          .catch(() => reject())
       }),
       {
-        pending: "Approve transaction...",
-        success: "funds claimed successfully 👌",
-        error: "Encountered error 🤯",
+        pending: 'Approve transaction...',
+        success: 'funds claimed successfully 👌',
+        error: 'Encountered error 🤯',
       }
-    );
-
+    )
   }
 
   return loaded ? (
@@ -73,7 +71,7 @@ const Bookings = () => {
       )}
 
       {appartment?.owner == connectedAccount.toLowerCase() ? (
-        <div className="w-11/12 mx-auto">
+        <div className="w-full sm:w-3/5 mx-auto mt-8">
           <h1 className="text-3xl text-center font-bold">
             View booking requests
           </h1>
@@ -94,58 +92,56 @@ const Bookings = () => {
                   ) : null}
                 </div>
               ))
-            : "No bookings yet"}
+            : 'No bookings yet'}
         </div>
       ) : null}
     </div>
-  ) : null;
-};
+  ) : null
+}
 
 const BookingDisplay = ({ booking }) => {
-  const { id } = useParams();
-  const connectedAccount = getGlobalState("connectedAccount");
+  const { id } = useParams()
+  const connectedAccount = getGlobalState('connectedAccount')
 
   useEffect(async () => {
     const params = {
       id,
       bookingId: booking.id,
-    };
-    await hasBookedDateReached(params);
-  }, []);
+    }
+    await hasBookedDateReached(params)
+  }, [])
 
   const handleRefund = async () => {
     const params = {
       id,
       bookingId: booking.id,
       date: new Date(booking.date).getTime(),
-    };
+    }
 
     await toast.promise(
       new Promise(async (resolve, reject) => {
         await refund(params)
           .then(async () => {
-            await getUnavailableDates(id);
-            await getBookings(id);
-            resolve();
+            await getUnavailableDates(id)
+            await getBookings(id)
+            resolve()
           })
-          .catch(() => reject());
+          .catch(() => reject())
       }),
       {
-        pending: "Approve transaction...",
-        success: "refund successful 👌",
-        error: "Encountered error 🤯",
+        pending: 'Approve transaction...',
+        success: 'refund successful 👌',
+        error: 'Encountered error 🤯',
       }
-    );
-  };
-
-  const bookedDayStatus = (booking)=> {
-      const bookedDate = new Date(booking.date).getTime()
-      const current = new Date().getTime()
-      const bookedDayStatus = bookedDate < current && !booking.checked;
-      return bookedDayStatus
+    )
   }
 
-
+  const bookedDayStatus = (booking) => {
+    const bookedDate = new Date(booking.date).getTime()
+    const current = new Date().getTime()
+    const bookedDayStatus = bookedDate < current && !booking.checked
+    return bookedDayStatus
+  }
 
   return (
     <>
@@ -171,7 +167,7 @@ const BookingDisplay = ({ booking }) => {
         </div>
       )}
     </>
-  );
-};
+  )
+}
 
-export default Bookings;
+export default Bookings

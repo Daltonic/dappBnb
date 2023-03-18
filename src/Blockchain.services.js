@@ -10,6 +10,7 @@ const contractAbi = abi.abi
 let tx
 
 const toWei = (num) => ethers.utils.parseEther(num.toString())
+const fromWei = (num) => ethers.utils.formatEther(num)
 
 const getEtheriumContract = async () => {
   const provider = new ethers.providers.Web3Provider(ethereum)
@@ -124,7 +125,9 @@ const loadAppartments = async () => {
   try {
     const contract = await getEtheriumContract()
     const appartments = await contract.getApartments()
+    const securityFee = await contract.securityFee()
     setGlobalState('appartments', structureAppartments(appartments))
+    setGlobalState('securityFee', fromWei(securityFee))
   } catch (err) {
     reportError(err)
   }
@@ -144,10 +147,11 @@ const appartmentBooking = async ({ id, datesArray, amount }) => {
   try {
     const contract = await getEtheriumContract()
     const connectedAccount = getGlobalState('connectedAccount')
+    const securityFee = getGlobalState('securityFee')
 
     tx = await contract.bookApartment(id, datesArray, {
       from: connectedAccount,
-      value: toWei(amount),
+      value: toWei(Number(amount) + Number(securityFee)),
     })
     await tx.wait()
     await getUnavailableDates(id)
@@ -223,7 +227,6 @@ const returnTaxPercent = async () => {
     const contract = await getEtheriumContract()
     const taxPercent = await contract.returnTaxPercent()
     return taxPercent
-    console.log(taxPercent)
   } catch (err) {
     reportError(err)
   }

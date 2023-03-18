@@ -1,9 +1,11 @@
 const { ethers } = require('hardhat')
 const fs = require('fs')
 
+const toWei = (num) => ethers.utils.parseEther(num.toString())
+
 async function main() {
   const taxPercent = 7
-  const securityFee = 5
+  const securityFee = toWei(0.005)
   const Contract = await ethers.getContractFactory('DappBnb')
   const contract = await Contract.deploy(taxPercent, securityFee)
   await contract.deployed()

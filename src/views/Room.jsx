@@ -27,7 +27,6 @@ const Room = () => {
   const { id } = useParams()
   const [appartment] = useGlobalState('appartment')
   const [reviews] = useGlobalState('reviews')
-  const [securityFee] = useGlobalState('securityFee')
 
   const handleReviewOpen = () => {
     setGlobalState('reviewModal', 'scale-100')
@@ -36,7 +35,6 @@ const Room = () => {
   useEffect(async () => {
     await loadAppartment(id)
     await loadReviews(id)
-    await returnSecurityFee()
   }, [])
 
   return (
@@ -52,7 +50,7 @@ const Room = () => {
       />
 
       <RoomDescription description={appartment?.description} />
-      <RoomCalendar price={appartment?.price} securityFee={securityFee} />
+      <RoomCalendar price={appartment?.price} />
       <RoomButtons id={appartment?.id} owner={appartment?.owner} />
 
       <div className="flex flex-col justify-between flex-wrap space-y-2">
@@ -214,7 +212,7 @@ const RoomGrid = ({ first, second, third, forth, fifth }) => {
   return (
     <div className="mt-8 h-[32rem] flex rounded-2xl overflow-hidden">
       <div className="md:w-1/2 w-full overflow-hidden">
-        <img className='object-cover w-full h-full' src={first} />
+        <img className="object-cover w-full h-full" src={first} />
       </div>
       <div className="w-1/2 md:flex hidden flex-wrap">
         <img src={second} className="object-cover w-1/2 h-64 pl-2 pb-1 pr-1" />
@@ -266,7 +264,7 @@ const RoomDescription = ({ description }) => {
   )
 }
 
-const RoomCalendar = ({ price, securityFee }) => {
+const RoomCalendar = ({ price }) => {
   const [checkInDate, setCheckInDate] = useState(null)
   const [checkOutDate, setCheckOutDate] = useState(null)
   const { id } = useParams()
@@ -297,7 +295,7 @@ const RoomCalendar = ({ price, securityFee }) => {
     const params = {
       id,
       datesArray: timestampArray,
-      amount: price * timestampArray.length + securityFee,
+      amount: price * timestampArray.length,
     }
 
     await toast.promise(
