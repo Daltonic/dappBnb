@@ -15,12 +15,12 @@ const ImageSlider = ({ images }) => {
       }}
       navigation={false}
       modules={[Autoplay, Pagination, Navigation]}
-      className="object-fill w-96 h-80 rounded-2xl"
+      className="w-96 h-52 rounded-t-2xl overflow-hidden"
     >
       {images.map((url, i) => (
         <SwiperSlide key={i}>
           <img
-            className="object-fill w-full h-full"
+            className="w-full"
             src={url}
             alt="image slide 1"
           />
