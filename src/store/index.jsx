@@ -45,8 +45,16 @@ const { setGlobalState, useGlobalState, getGlobalState } = createGlobalState({
   reviews: [],
   connectedAccount: "",
   contract: null,
-  reviewModal:'scale-0',
-
+  reviewModal: "scale-0",
+  securityFee: null,
+  bookings: [],
+  booking: null,
+  status: null,
+  timestamps: [],
+  currentUser: null,
+  recentConversations: [],
+  recentConversations:null,
+  messages: []
 });
 
 const truncate = (text, startChars, endChars, maxLength) => {

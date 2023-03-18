@@ -10,6 +10,10 @@ import { isWallectConnected, loadAppartments } from './Blockchain.services'
 import UpdateRoom from './views/UpdateRoom'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import Bookings from './views/Bookings'
+import Chats from './views/Chats'
+import AuthChat from './views/AuthChat'
+import RecentConversations from './views/RecentConversations'
 
 
 const App = () => {
@@ -32,6 +36,10 @@ const App = () => {
           <Route path="/card" element={<Card />} />
           <Route path="/addRoom" element={<AddRoom />} />
           <Route path="/editRoom/:id" element={<UpdateRoom />} />
+          <Route path="/bookings/:id" element={<Bookings />} />
+          <Route path="/chats/:id" element={<Chats />} />
+          <Route path="/authchat/:id" element={<AuthChat />} />
+          <Route path="/recentconversations" element={<RecentConversations />} />
         </Routes>
       ) : null}
       <div className="h-20"></div>

@@ -122,6 +122,8 @@ contract DappBnb is Ownable, ReentrancyGuard {
         apartments[id].deleted = true;
     }
 
+ 
+
     function getApartments() public view returns (ApartmentStruct[] memory Apartments) {
         uint256 totalSpace;
         for (uint i = 1; i <= _totalAppartments.current(); i++) {
@@ -129,12 +131,16 @@ contract DappBnb is Ownable, ReentrancyGuard {
         }
 
         Apartments = new ApartmentStruct[](totalSpace);
-        
+
+        uint256 j = 0;
         for (uint i = 1; i <= _totalAppartments.current(); i++) {
-            if(!apartments[i].deleted) Apartments[i - 1] = apartments[i];
+            if(!apartments[i].deleted) {
+                Apartments[j] = apartments[i];
+                j++;
+            }
         }
     }
-
+    
     function getApartment(uint id) public view returns (ApartmentStruct memory) {
         return apartments[id];
     }
@@ -179,8 +185,20 @@ contract DappBnb is Ownable, ReentrancyGuard {
        payTo(msg.sender, securityFee);
     }
 
-    function refundBooking(uint id, uint bookingId, uint date) public nonReentrant {    
+    function claimFunds(uint id, uint bookingId) public {
+        require(msg.sender == apartments[id].owner, "Unauthorized entity");
         require(!bookingsOf[id][bookingId].checked, "Apartment already checked on this date!");
+
+        uint price = bookingsOf[id][bookingId].price;
+        uint fee = (price * taxPercent) / 100;
+    
+       payTo(apartments[id].owner, (price - fee));
+       payTo(owner(), fee);
+       payTo(msg.sender, securityFee);
+    }
+
+    function refundBooking(uint id, uint bookingId, uint date) public nonReentrant {
+       require(!bookingsOf[id][bookingId].checked, "Apartment already checked on this date!");
 
         if(msg.sender != owner()) {
             require(msg.sender == bookingsOf[id][bookingId].tenant, "Unauthorized tenant!");
@@ -190,15 +208,23 @@ contract DappBnb is Ownable, ReentrancyGuard {
         bookingsOf[id][bookingId].cancelled = true;
         isDateBooked[id][date] = false;
 
-        bookedDates[id][bookingId] = bookedDates[id][bookedDates[id].length - 1];
+        uint lastIndex = bookedDates[id].length - 1;
+        uint lastBookingId = bookedDates[id][lastIndex];
+        bookedDates[id][bookingId] = lastBookingId;
         bookedDates[id].pop();
+
 
         uint price = bookingsOf[id][bookingId].price;
         uint fee = securityFee * taxPercent / 100;
-    
+
         payTo(apartments[id].owner, (securityFee - fee));
         payTo(owner(), fee);
         payTo(msg.sender, price);
+   }
+
+
+    function hasBookedDateReached(uint id,uint bookingId) public view returns(bool) {
+        return bookingsOf[id][bookingId].date < currentTime();
     }
 
     function getUnavailableDates(uint id) public view returns (uint[] memory) {
@@ -250,5 +276,12 @@ contract DappBnb is Ownable, ReentrancyGuard {
     function currentTime() internal view returns (uint256) {
         uint256 newNum = (block.timestamp * 1000) + 1000;
         return newNum;
+    }
+
+    function returnSecurityFee() public view returns(uint) {
+        return securityFee;
+    }
+    function returnTaxPercent() public view returns(uint) {
+        return taxPercent;
     }
 }

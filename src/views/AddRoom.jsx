@@ -24,7 +24,7 @@ const AddRoom = () => {
       name: `${name}, ${location}`,
       description,
       rooms,
-      images: links.join(','),
+      images: links.slice(0, 5).join(','),
       price,
     }
 
@@ -33,8 +33,8 @@ const AddRoom = () => {
         await createAppartment(params)
           .then(async () => {
             onReset();
-            loadAppartments();
             navigate('/')
+            loadAppartments();
             resolve();
           })
           .catch(() => reject());

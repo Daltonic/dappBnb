@@ -15,17 +15,25 @@ import {
   loadReviews,
   loadAppartments,
   appartmentBooking,
+  returnSecurityFee,
+  getUnavailableDates,
 } from '../Blockchain.services'
-import { useGlobalState, setGlobalState, truncate } from '../store'
+import { useGlobalState, setGlobalState, truncate, getGlobalState } from '../store'
 import AddReview from '../components/AddReview'
 import moment from 'moment'
 import { toast } from 'react-toastify'
+import { isUserLoggedIn } from '../services/Chat'
 
 const Room = () => {
   const { id } = useParams()
   const [comments] = useGlobalState('comments')
   const [appartment] = useGlobalState('appartment')
   const [reviews] = useGlobalState('reviews')
+  const [securityFee] = useGlobalState("securityFee");
+  const [loggedIn,setLoggedIn] = useState(false)
+  const [currentUser] = useGlobalState('currentUser')
+  const connectedAccount = getGlobalState('connectedAccount')
+  const navigate = useNavigate()
 
   const handleReviewOpen = () => {
     setGlobalState('reviewModal', 'scale-100')
@@ -34,7 +42,23 @@ const Room = () => {
   useEffect(async () => {
     await loadAppartment(id)
     await loadReviews(id)
+    await returnSecurityFee();
+    setLoggedIn(currentUser?.uid.toLowerCase() == connectedAccount)
   }, [])
+
+  
+
+  const handleChat = () => {
+    if(loggedIn && currentUser?.uid.toLowerCase() == appartment.owner) {
+       navigate(`/recentconversations`)
+    }else if(loggedIn && currentUser?.uid.toLowerCase() != appartment.owner) {
+      navigate(`/chats/${appartment.owner}`)
+    }else if(!currentUser){
+      navigate(`/authchat/${id}`)
+    }
+  }
+
+
   return (
     <div className="py-8 px-10 sm:px-20 md:px-32">
       <RoomHeader
@@ -55,6 +79,7 @@ const Room = () => {
         description={appartment?.description}
         rooms={appartment?.rooms}
         price={appartment?.price}
+        securityFee={securityFee}
       />
 
       <RoomReviews />
@@ -64,7 +89,7 @@ const Room = () => {
           ? reviews.map((review, index) => (
               <RoomComments key={index} review={review} />
             ))
-          : 'No reviews yet!'}
+          : "No reviews yet!"}
       </div>
       <p
         className="underline mt-11 cursor-pointer hover:text-blue-700"
@@ -73,11 +98,13 @@ const Room = () => {
         Drop your review
       </p>
       <AddReview />
-      <div className="fixed bottom-[6rem] right-4 px-4 py-3 rounded-full shadow-lg border-[0.1px] border-gray-300 flex  justify-center items-center space-x-3 cursor-pointer bg-white z-50 hover:bg-gray-100">
-        <BsChatLeft className="text-3xl text-pink-500" />
-      </div>
+      <button className="fixed bottom-[6rem] right-4 px-2 py-3 rounded-md shadow-lg border-[0.1px] border-gray-300 flex  justify-center items-center space-x-2 cursor-pointer bg-white z-50 hover:bg-gray-100"
+        onClick={handleChat}
+      >
+        <BsChatLeft className="text-xl text-pink-500" /><small>Chats</small> 
+      </button>
     </div>
-  )
+  );
 }
 
 const RoomHeader = ({ name, id, owner }) => {
@@ -90,10 +117,9 @@ const RoomHeader = ({ name, id, owner }) => {
         new Promise(async (resolve, reject) => {
           await deleteAppartment(id)
             .then(async () => {
-              onReset()
-              resolve()
               navigate('/')
               await loadAppartments()
+              resolve()
             })
             .catch(() => reject())
         }),
@@ -102,8 +128,8 @@ const RoomHeader = ({ name, id, owner }) => {
           success: 'apartment deleted successfully 👌',
           error: 'Encountered error 🤯',
         }
-      )
-      alert('Room Deleted')
+      );
+      
     } else {
       console.log('Not deleted')
     }
@@ -130,7 +156,7 @@ const RoomHeader = ({ name, id, owner }) => {
               className="flex items-center justify-center space-x-1 text-red-500 cursor-pointer"
             >
               <MdDeleteOutline />
-              <span>Delete {id}</span>
+              <span>Delete</span>
             </div>
           </div>
         ) : null}
@@ -167,11 +193,13 @@ const RoomGrid = ({ first, second, third, forth, fifth }) => {
   )
 }
 
-const RoomDeescription = ({ description, rooms, price }) => {
+const RoomDeescription = ({ description, rooms, price, securityFee }) => {
   const [checkInDate, setCheckInDate] = useState(null)
   const [checkOutDate, setCheckOutDate] = useState(null)
-  const [timestamps, setTimestamps] = useState([])
   const { id } = useParams()
+  const [timestamps] = useGlobalState('timestamps')
+
+  useEffect(async()=> await getUnavailableDates(id))
 
   const handleCheckInDateChange = (date) => {
     setCheckInDate(date)
@@ -193,13 +221,29 @@ const RoomDeescription = ({ description, rooms, price }) => {
       start.add(1, 'days')
     }
 
-    // setTimestamps(timestampArray);
-    // const checkin = checkInDate.getTime();
-    // const checkout = checkOutDate.getTime();
-    // const nights = moment.duration(checkout - checkin).asDays();
-    // alert(`Number of nights: ${nights}`);
+    const params = {
+       id,
+       datesArray: timestampArray,
+       amount: price * timestampArray.length + securityFee
+    }
 
-    //  resetForm();
+    await toast.promise(
+      new Promise(async (resolve, reject) => {
+        await appartmentBooking(params)
+          .then(async () => {
+            resetForm();
+            resolve();
+          })
+          .catch(() => reject());
+      }),
+      {
+        pending: "Approve transaction...",
+        success: "apartment booked successfully 👌",
+        error: "Encountered error 🤯",
+      }
+    );
+  
+
   }
 
   const resetForm = () => {
@@ -207,9 +251,7 @@ const RoomDeescription = ({ description, rooms, price }) => {
     setCheckOutDate(null)
   }
 
-  const remove = () => {
-    setTimestamps([])
-  }
+  
 
   return (
     <>
@@ -223,8 +265,10 @@ const RoomDeescription = ({ description, rooms, price }) => {
         </div>
       </div>
       <div className="py-10 border-b-2 border-b-slate-200 space-y-4">
-        <div className="w-5/3 flex p-3 justify-between">
-          <div></div>
+        <div className="w-5/3 flex p-3 lg:justify-between lg:flex-row flex-col items-center max-lg:space-y-3 justify-center">
+          <Link to={`/bookings/${id}`} className='p-3 bg-pink-500 rounded-md h-12 text-white flex justify-center items-center cursor-pointer max-lg:flex-col'>
+            Check your bookings
+          </Link> 
           <form
             onSubmit={handleSubmit}
             className="w-[25rem] min-h-[15rem] border-[0.1px] border-gray-400 self-end rounded-lg shadow-lg p-2 sticky top-0 "
@@ -279,7 +323,7 @@ const RoomDeescription = ({ description, rooms, price }) => {
           <BiBookOpen className="text-4xl" />
           <div>
             <h1 className="text-xl font-semibold">Featured in</h1>
-            <p className="cursor-pointer" onClick={remove}>
+            <p className="cursor-pointer">
               Condé Nast Traveler, June 2021
             </p>
           </div>
