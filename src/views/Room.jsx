@@ -8,7 +8,11 @@ import { BsChatLeft } from 'react-icons/bs'
 import Identicon from 'react-identicons'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
+import { useGlobalState, setGlobalState, truncate } from '../store'
+import AddReview from '../components/AddReview'
+import moment from 'moment'
+import { toast } from 'react-toastify'
+import { loginWithCometChat, signUpWithCometChat } from '../services/Chat'
 import {
   deleteAppartment,
   loadAppartment,
@@ -18,20 +22,6 @@ import {
   returnSecurityFee,
   getUnavailableDates,
 } from '../Blockchain.services'
-import {
-  useGlobalState,
-  setGlobalState,
-  truncate,
-  getGlobalState,
-} from '../store'
-import AddReview from '../components/AddReview'
-import moment from 'moment'
-import { toast } from 'react-toastify'
-import {
-  isUserLoggedIn,
-  loginWithCometChat,
-  signUpWithCometChat,
-} from '../services/Chat'
 
 const Room = () => {
   const { id } = useParams()
@@ -104,6 +94,7 @@ const RoomHeader = ({ name, rooms }) => {
 
 const RoomButtons = ({ id, owner }) => {
   const [currentUser] = useGlobalState('currentUser')
+  const [connectedAccount] = useGlobalState('connectedAccount')
   const navigate = useNavigate()
 
   const handleDelete = async () => {
@@ -193,33 +184,37 @@ const RoomButtons = ({ id, owner }) => {
         </>
       )}
 
-      <Link
-        to={'/editRoom/' + id}
-        className="p-2 rounded-md shadow-lg border-[0.1px]
-        border-gray-500 flex justify-start items-center space-x-1
-        bg-gray-500 z-50 hover:bg-transparent hover:text-gray-500 text-white"
-      >
-        <CiEdit size={15} />
-        <small>Edit</small>
-      </Link>
-      <button
-        className="p-2 rounded-md shadow-lg border-[0.1px]
-        border-pink-500 flex justify-start items-center space-x-1
-        bg-pink-500 z-50 hover:bg-transparent hover:text-pink-500 text-white"
-        onClick={handleDelete}
-      >
-        <MdDeleteOutline size={15} />
-        <small>Delete</small>
-      </button>
+      {connectedAccount == owner ? (
+        <>
+          <Link
+            to={'/editRoom/' + id}
+            className="p-2 rounded-md shadow-lg border-[0.1px]
+            border-gray-500 flex justify-start items-center space-x-1
+            bg-gray-500 z-50 hover:bg-transparent hover:text-gray-500 text-white"
+          >
+            <CiEdit size={15} />
+            <small>Edit</small>
+          </Link>
+          <button
+            className="p-2 rounded-md shadow-lg border-[0.1px]
+            border-pink-500 flex justify-start items-center space-x-1
+            bg-pink-500 z-50 hover:bg-transparent hover:text-pink-500 text-white"
+            onClick={handleDelete}
+          >
+            <MdDeleteOutline size={15} />
+            <small>Delete</small>
+          </button>
+        </>
+      ) : null}
     </div>
   )
 }
 
 const RoomGrid = ({ first, second, third, forth, fifth }) => {
   return (
-    <div className="mt-8 flex rounded-2xl overflow-hidden">
-      <div className="md:w-1/2 w-full">
-        <img src={first} className="object-cover h-full" />
+    <div className="mt-8 h-[32rem] flex rounded-2xl overflow-hidden">
+      <div className="md:w-1/2 w-full overflow-hidden">
+        <img className='object-cover h-full' src={first} />
       </div>
       <div className="w-1/2 md:flex hidden flex-wrap">
         <img src={second} className="object-cover w-1/2 h-64 pl-2 pb-1 pr-1" />
@@ -238,7 +233,7 @@ const RoomDescription = ({ description }) => {
   return (
     <div className="py-5 border-b-2 border-b-slate-200 space-y-4">
       <h1 className="text-xl font-semibold">Description</h1>
-      <p className="text-slate-500 text-lg w-4/5">{description}</p>
+      <p className="text-slate-500 text-lg w-full sm:w-4/5">{description}</p>
 
       <div className=" flex space-x-4 ">
         <BiBookOpen className="text-4xl" />
@@ -330,7 +325,7 @@ const RoomCalendar = ({ price, securityFee }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-[25rem] border-[0.1px] p-6
+      className="sm:w-[25rem] border-[0.1px] p-6
             border-gray-400 rounded-lg shadow-lg flex flex-col
             space-y-4"
     >
