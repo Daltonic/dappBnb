@@ -1,121 +1,117 @@
-import { CometChat } from "@cometchat-pro/chat";
-import { getGlobalState } from "../store";
+import { CometChat } from '@cometchat-pro/chat'
+import { getGlobalState } from '../store'
 
 const CONSTANTS = {
   APP_ID: process.env.REACT_APP_COMET_CHAT_APP_ID,
   REGION: process.env.REACT_APP_COMET_CHAT_REGION,
   Auth_Key: process.env.REACT_APP_COMET_CHAT_AUTH_KEY,
-};
+}
 
 const initCometChat = async () => {
-  const appID = CONSTANTS.APP_ID;
-  const region = CONSTANTS.REGION;
+  const appID = CONSTANTS.APP_ID
+  const region = CONSTANTS.REGION
 
   const appSetting = new CometChat.AppSettingsBuilder()
     .subscribePresenceForAllUsers()
     .setRegion(region)
-    .build();
+    .build()
 
   await CometChat.init(appID, appSetting)
-    .then(() => console.log("Initialization completed successfully"))
-    .catch((error) => error);
-};
+    .then(() => console.log('Initialization completed successfully'))
+    .catch((error) => error)
+}
 
 const loginWithCometChat = async () => {
-  const authKey = CONSTANTS.Auth_Key;
-  const UID = getGlobalState("connectedAccount");
+  const authKey = CONSTANTS.Auth_Key
+  const UID = getGlobalState('connectedAccount')
 
   return new Promise(async (resolve, reject) => {
     await CometChat.login(UID, authKey)
       .then((user) => resolve(user))
-      .catch((error) => reject(error));
-  });
-};
+      .catch((error) => reject(error))
+  })
+}
 
 const signUpWithCometChat = async () => {
-  const authKey = CONSTANTS.Auth_Key;
-  const UID = getGlobalState("connectedAccount");
-  const user = new CometChat.User(UID);
+  const authKey = CONSTANTS.Auth_Key
+  const UID = getGlobalState('connectedAccount')
+  const user = new CometChat.User(UID)
 
-  user.setName(UID);
+  user.setName(UID)
   return new Promise(async (resolve, reject) => {
     await CometChat.createUser(user, authKey)
       .then((user) => resolve(user))
-      .catch((error) => reject(error));
-  });
-};
+      .catch((error) => reject(error))
+  })
+}
 
 const logOutWithCometChat = async () => {
   return new Promise(async (resolve, reject) => {
     await CometChat.logout()
       .then(() => resolve())
-      .catch(() => reject());
-  });
-};
-
-
+      .catch(() => reject())
+  })
+}
 
 const isUserLoggedIn = async () => {
-  new Promise(async (resolve,reject) => {
-      await CometChat.getLoggedinUser()
-        .then((user) => resolve(user))
-        .catch((error) => reject(error));
+  return new Promise(async (resolve, reject) => {
+    await CometChat.getLoggedinUser()
+      .then((user) => resolve(user))
+      .catch((error) => reject(error))
   })
-};
+}
 
 const getUser = async (UID) => {
-  return new Promise( async (resolve,reject) => {
+  return new Promise(async (resolve, reject) => {
     await CometChat.getUser(UID)
-    .then((user) => resolve(user))
-    .catch((error) => reject(error))
+      .then((user) => resolve(user))
+      .catch((error) => reject(error))
   })
 }
 
 const getMessages = async (UID) => {
-  const limit = 30;
+  const limit = 30
   const messagesRequest = new CometChat.MessagesRequestBuilder()
     .setUID(UID)
     .setLimit(limit)
-    .build();
+    .build()
 
- return new Promise(async (resolve, reject) => {
-   await messagesRequest
-     .fetchPrevious()
-     .then((messages) => resolve(messages.filter((msg) => msg.type == "text")))
-     .catch((error) => reject(error));
- });
-};
+  return new Promise(async (resolve, reject) => {
+    await messagesRequest
+      .fetchPrevious()
+      .then((messages) => resolve(messages.filter((msg) => msg.type == 'text')))
+      .catch((error) => reject(error))
+  })
+}
 
 const sendMessage = async (receiverID, messageText) => {
-  const receiverType = CometChat.RECEIVER_TYPE.USER;
+  const receiverType = CometChat.RECEIVER_TYPE.USER
   const textMessage = new CometChat.TextMessage(
     receiverID,
     messageText,
     receiverType
-  );
+  )
 
-  return new Promise( async (resolve,reject) => {
-     await CometChat.sendMessage(textMessage)
+  return new Promise(async (resolve, reject) => {
+    await CometChat.sendMessage(textMessage)
       .then((message) => resolve(message))
-      .catch((error) => reject(error));
+      .catch((error) => reject(error))
   })
-  
-};
+}
 
 const getConversations = async () => {
-  const limit = 30;
+  const limit = 30
   const conversationsRequest = new CometChat.ConversationsRequestBuilder()
     .setLimit(limit)
-    .build();
+    .build()
 
-    return new Promise(async (resolve,reject) => {
-       await conversationsRequest
-        .fetchNext()
-        .then((conversationList) => resolve(conversationList))
-        .catch((error) => reject(error))
-    })
-  
-};
+  return new Promise(async (resolve, reject) => {
+    await conversationsRequest
+      .fetchNext()
+      .then((conversationList) => resolve(conversationList))
+      .catch((error) => reject(error))
+  })
+}
 
 export {
   initCometChat,
@@ -128,4 +124,4 @@ export {
   isUserLoggedIn,
   getUser,
   CometChat,
-};
+}
