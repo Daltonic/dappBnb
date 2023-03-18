@@ -214,7 +214,7 @@ const RoomGrid = ({ first, second, third, forth, fifth }) => {
   return (
     <div className="mt-8 h-[32rem] flex rounded-2xl overflow-hidden">
       <div className="md:w-1/2 w-full overflow-hidden">
-        <img className='object-cover h-full' src={first} />
+        <img className='object-cover w-full h-full' src={first} />
       </div>
       <div className="w-1/2 md:flex hidden flex-wrap">
         <img src={second} className="object-cover w-1/2 h-64 pl-2 pb-1 pr-1" />

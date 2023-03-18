@@ -1,8 +1,8 @@
 import React from 'react'
 import { FaHome, FaSearch } from 'react-icons/fa'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { connectWallet } from '../Blockchain.services'
-import { truncate, useGlobalState } from '../store'
+import { setGlobalState, truncate, useGlobalState } from '../store'
 
 const Header = () => {
   const [connectedAccount] = useGlobalState('connectedAccount')
@@ -35,14 +35,25 @@ const Header = () => {
 }
 
 const ButtonGroup = () => {
+  const [currentUser] = useGlobalState('currentUser')
+  const navigate = useNavigate()
+
+  const handleNavigate = () => {
+    if (currentUser) {
+      navigate('/recentconversations')
+    } else {
+      setGlobalState('authModal', 'scale-100')
+    }
+  }
+
   return (
     <div
       className="md:flex hidden items-center justify-center shadow-gray-400
       shadow-sm overflow-hidden rounded-full cursor-pointer"
     >
       <div className="inline-flex" role="group">
-        <Link to={'/recentconversations'}
-          type="button"
+        <button
+          onClick={handleNavigate}
           className="
             rounded-l-full
             px-5
@@ -60,7 +71,7 @@ const ButtonGroup = () => {
           "
         >
           Customers
-        </Link>
+        </button>
         <Link to={'/addRoom'}>
           <button
             type="button"

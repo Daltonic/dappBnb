@@ -15,6 +15,7 @@ import Chats from './views/Chats'
 import RecentConversations from './views/RecentConversations'
 import { setGlobalState, useGlobalState } from './store'
 import { isUserLoggedIn } from './services/Chat'
+import AuthModal from './components/AuthModal'
 
 const App = () => {
   const [connectedAccount] = useGlobalState('connectedAccount')
@@ -41,6 +42,7 @@ const App = () => {
       </Routes>
       <div className="h-20"></div>
       <Footer />
+      <AuthModal />
 
       <ToastContainer
         position="bottom-center"
