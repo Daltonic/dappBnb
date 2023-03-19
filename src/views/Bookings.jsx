@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useGlobalState, getGlobalState } from '../store'
 import { toast } from 'react-toastify'
 import {
@@ -9,6 +9,7 @@ import {
   refund,
   loadAppartment,
   claimFunds,
+  checkInApartment,
 } from '../Blockchain.services'
 
 const Bookings = () => {
@@ -55,7 +56,7 @@ const Bookings = () => {
   }
 
   return loaded ? (
-    <div className="w-11/12 mx-auto mt-5">
+    <div className="w-full sm:w-3/5 mx-auto mt-8">
       {appartment?.owner != connectedAccount.toLowerCase() ? (
         <h1 className="text-center text-3xl text-black font-bold">
           Your bookings
@@ -79,12 +80,12 @@ const Bookings = () => {
             ? bookings.map((booking, index) => (
                 <div
                   key={index}
-                  className="w-full flex justify-between items-center my-3 bg-gray-100 p-3"
+                  className="w-full my-3 border-b border-b-gray-100 p-3 bg-gray-100"
                 >
                   <div>{booking.date}</div>
                   {isDayAfter(booking) ? (
                     <button
-                      className="p-2 cursor-pointer bg-green-500 text-white rounded-md focus:outline-none focus:ring-0"
+                      className="p-2 bg-green-500 text-white rounded-full text-sm"
                       onClick={() => handleClaimFunds(booking)}
                     >
                       claim
@@ -110,6 +111,24 @@ const BookingDisplay = ({ booking }) => {
     }
     await hasBookedDateReached(params)
   }, [])
+
+  const handleCheckIn = async () => {
+    await toast.promise(
+      new Promise(async (resolve, reject) => {
+        await checkInApartment(id, booking.id)
+          .then(async () => {
+            await getBookings(id)
+            resolve()
+          })
+          .catch(() => reject())
+      }),
+      {
+        pending: 'Approve transaction...',
+        success: 'Checked In successfully 👌',
+        error: 'Encountered error 🤯',
+      }
+    )
+  }
 
   const handleRefund = async () => {
     const params = {
@@ -148,20 +167,26 @@ const BookingDisplay = ({ booking }) => {
       {booking.tenant != connectedAccount.toLowerCase() ||
       booking.cancelled == true ? null : (
         <div className="w-full flex justify-between items-center my-3 bg-gray-100 p-3">
-          <div>{booking.date}</div>
+          <Link className=" font-medium underline" to={'/room/' + id}>
+            {booking.date}
+          </Link>
           {bookedDayStatus(booking) ? (
             <button
-              className="p-2 cursor-pointer bg-green-500 text-white rounded-md focus:outline-none focus:ring-0"
-              onClick={handleRefund}
+              className="p-2 bg-green-500 text-white rounded-full text-sm px-4"
+              onClick={handleCheckIn}
             >
-              checkIn
+              Check In
+            </button>
+          ) : booking.checked ? (
+            <button className="p-2 bg-yellow-500 text-white font-medium italic rounded-full text-sm px-4">
+              Checked In
             </button>
           ) : (
             <button
-              className="p-2 cursor-pointer bg-red-500 text-white rounded-md focus:outline-none focus:ring-0"
+              className="p-2 bg-[#ff385c] text-white rounded-full text-sm px-4"
               onClick={handleRefund}
             >
-              refund
+              Refund
             </button>
           )}
         </div>

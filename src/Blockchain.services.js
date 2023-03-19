@@ -137,7 +137,9 @@ const loadAppartment = async (id) => {
   try {
     const contract = await getEtheriumContract()
     const appartment = await contract.getApartment(id)
+    const booked = await contract.tenantBooked(id)
     setGlobalState('appartment', structureAppartments([appartment])[0])
+    setGlobalState('booked', booked)
   } catch (error) {
     reportError(error)
   }
@@ -191,7 +193,7 @@ const claimFunds = async ({ id, bookingId }) => {
   }
 }
 
-const checkInApartment = async ({ id, bookingId }) => {
+const checkInApartment = async (id, bookingId) => {
   try {
     const connectedAccount = getGlobalState('connectedAccount')
     const contract = await getEtheriumContract()
@@ -210,26 +212,6 @@ const getUnavailableDates = async (id) => {
   const unavailableDates = await contract.getUnavailableDates(id)
   const timestamps = unavailableDates.map((timestamp) => Number(timestamp))
   setGlobalState('timestamps', timestamps)
-}
-
-const returnSecurityFee = async () => {
-  try {
-    const contract = await getEtheriumContract()
-    const securityFee = await contract.returnSecurityFee()
-    setGlobalState('securityFee', securityFee.toNumber())
-  } catch (err) {
-    reportError(err)
-  }
-}
-
-const returnTaxPercent = async () => {
-  try {
-    const contract = await getEtheriumContract()
-    const taxPercent = await contract.returnTaxPercent()
-    return taxPercent
-  } catch (err) {
-    reportError(err)
-  }
 }
 
 const hasBookedDateReached = async ({ id, bookingId }) => {
@@ -273,7 +255,7 @@ const getBooking = async ({ id, bookingId }) => {
   }
 }
 
-const addReview = async ({ id, reviewText }) => {
+const addReview = async (id, reviewText) => {
   try {
     if (!ethereum) return alert('Please install Metamask')
     const contract = await getEtheriumContract()
@@ -341,8 +323,6 @@ export {
   loadReviews,
   addReview,
   getUnavailableDates,
-  returnSecurityFee,
-  returnTaxPercent,
   getBookings,
   getBooking,
   hasBookedDateReached,

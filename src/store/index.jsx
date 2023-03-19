@@ -49,11 +49,11 @@ const { setGlobalState, useGlobalState, getGlobalState } = createGlobalState({
   securityFee: null,
   bookings: [],
   booking: null,
+  booked: false,
   status: null,
   timestamps: [],
   currentUser: null,
   recentConversations: [],
-  recentConversations:null,
   messages: []
 });
 

@@ -27,11 +27,15 @@ const RecentConversations = () => {
         ? recentConversations?.map((conversation, index) => (
             <Link
               className="flex items-center space-x-3 w-full my-3
-              border-b border-b-gray-100 p-3 hover:bg-gray-100"
+              border-b border-b-gray-100 p-3 bg-gray-100"
               to={`/chats/${conversation.conversationWith.uid}`}
               key={index}
             >
-              <Identicon string={conversation.conversationWith.uid} size={20} />
+              <Identicon
+                className="rounded-full shadow-gray-500 shadow-sm bg-white"
+                string={conversation.conversationWith.uid}
+                size={20}
+              />
               <p>{truncate(conversation.conversationWith.name, 4, 4, 11)}</p>
             </Link>
           ))

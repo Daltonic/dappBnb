@@ -1,5 +1,4 @@
-import React from 'react'
-import { FaHome, FaSearch } from 'react-icons/fa'
+import { FaAirbnb, FaSearch } from 'react-icons/fa'
 import { Link, useNavigate } from 'react-router-dom'
 import { connectWallet } from '../Blockchain.services'
 import { setGlobalState, truncate, useGlobalState } from '../store'
@@ -11,7 +10,7 @@ const Header = () => {
     <header className="flex justify-between items-center p-4 px-8 sm:px-10 md:px-14 border-b-2 border-b-slate-200 w-full">
       <Link to={'/'}>
         <p className="text-[#ff385c] flex items-center text-xl">
-          <FaHome />
+          <FaAirbnb className=' font-semibold' />
           DappBnb
         </p>
       </Link>

@@ -51,6 +51,7 @@ contract DappBnb is Ownable, ReentrancyGuard {
     mapping(uint => bool) appartmentExist;
     mapping(uint => uint[]) bookedDates;
     mapping(uint => mapping(uint => bool)) isDateBooked;
+    mapping(address => mapping(uint => bool)) hasBooked;
 
     constructor(uint _taxPercent, uint _securityFee) {
         taxPercent = _taxPercent;
@@ -179,6 +180,8 @@ contract DappBnb is Ownable, ReentrancyGuard {
        bookingsOf[id][bookingId].checked = true;
        uint price = bookingsOf[id][bookingId].price;
        uint fee = (price * taxPercent) / 100;
+
+       hasBooked[msg.sender][id] = true;
     
        payTo(apartments[id].owner, (price - fee));
        payTo(owner(), fee);
@@ -255,7 +258,8 @@ contract DappBnb is Ownable, ReentrancyGuard {
     }
 
     function addReview(uint appartmentId, string memory reviewText) public {
-        require(appartmentExist[appartmentId] == true,"Appartment not available");
+        require(appartmentExist[appartmentId],"Appartment not available");
+        require(hasBooked[msg.sender][appartmentId],"Book first before review");
         require(bytes(reviewText).length > 0, "Review text cannot be empty");
 
         ReviewStruct memory review;
@@ -269,19 +273,16 @@ contract DappBnb is Ownable, ReentrancyGuard {
         reviewsOf[appartmentId].push(review);
     }
 
-    function getReviews(uint appartmentId) public view returns(ReviewStruct[] memory) {
+    function getReviews(uint appartmentId) public view returns (ReviewStruct[] memory) {
         return reviewsOf[appartmentId];
+    }
+    
+    function tenantBooked(uint appartmentId) public view returns (bool) {
+        return hasBooked[msg.sender][appartmentId];
     }
 
     function currentTime() internal view returns (uint256) {
         uint256 newNum = (block.timestamp * 1000) + 1000;
         return newNum;
-    }
-
-    function returnSecurityFee() public view returns(uint) {
-        return securityFee;
-    }
-    function returnTaxPercent() public view returns(uint) {
-        return taxPercent;
     }
 }

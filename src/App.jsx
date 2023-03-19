@@ -43,6 +43,7 @@ const App = () => {
       <div className="h-20"></div>
       <Footer />
       <AuthModal />
+      
 
       <ToastContainer
         position="bottom-center"

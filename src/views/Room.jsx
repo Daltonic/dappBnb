@@ -9,8 +9,8 @@ import Identicon from 'react-identicons'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import DatePicker from 'react-datepicker'
 import { useGlobalState, setGlobalState, truncate } from '../store'
-import AddReview from '../components/AddReview'
 import moment from 'moment'
+import AddReview from '../components/AddReview'
 import { toast } from 'react-toastify'
 import { loginWithCometChat, signUpWithCometChat } from '../services/Chat'
 import {
@@ -19,7 +19,6 @@ import {
   loadReviews,
   loadAppartments,
   appartmentBooking,
-  returnSecurityFee,
   getUnavailableDates,
 } from '../Blockchain.services'
 
@@ -27,6 +26,7 @@ const Room = () => {
   const { id } = useParams()
   const [appartment] = useGlobalState('appartment')
   const [reviews] = useGlobalState('reviews')
+  const [booked] = useGlobalState('booked')
 
   const handleReviewOpen = () => {
     setGlobalState('reviewModal', 'scale-100')
@@ -38,40 +38,43 @@ const Room = () => {
   }, [])
 
   return (
-    <div className="py-8 px-10 sm:px-20 md:px-32 space-y-8">
-      <RoomHeader name={appartment?.name} rooms={appartment?.rooms} />
+    <>
+      <div className="py-8 px-10 sm:px-20 md:px-32 space-y-8">
+        <RoomHeader name={appartment?.name} rooms={appartment?.rooms} />
 
-      <RoomGrid
-        first={appartment?.images[0]}
-        second={appartment?.images[1]}
-        third={appartment?.images[2]}
-        forth={appartment?.images[3]}
-        fifth={appartment?.images[4]}
-      />
+        <RoomGrid
+          first={appartment?.images[0]}
+          second={appartment?.images[1]}
+          third={appartment?.images[2]}
+          forth={appartment?.images[3]}
+          fifth={appartment?.images[4]}
+        />
 
-      <RoomDescription description={appartment?.description} />
-      <RoomCalendar price={appartment?.price} />
-      <RoomButtons id={appartment?.id} owner={appartment?.owner} />
+        <RoomDescription description={appartment?.description} />
+        <RoomCalendar price={appartment?.price} />
+        <RoomButtons id={appartment?.id} owner={appartment?.owner} />
 
-      <div className="flex flex-col justify-between flex-wrap space-y-2">
-        <h1 className="text-xl font-semibold">Reviews</h1>
-        <div>
-          {reviews.length > 0
-            ? reviews.map((review, index) => (
-                <RoomComments key={index} review={review} />
-              ))
-            : 'No reviews yet!'}
+        <div className="flex flex-col justify-between flex-wrap space-y-2">
+          <h1 className="text-xl font-semibold">Reviews</h1>
+          <div>
+            {reviews.length > 0
+              ? reviews.map((review, index) => (
+                  <RoomReview key={index} review={review} />
+                ))
+              : 'No reviews yet!'}
+          </div>
         </div>
+        {booked ? (
+          <p
+            className="underline mt-11 cursor-pointer hover:text-blue-700"
+            onClick={handleReviewOpen}
+          >
+            Drop your review
+          </p>
+        ) : null}
       </div>
-      <p
-        className="underline mt-11 cursor-pointer hover:text-blue-700"
-        onClick={handleReviewOpen}
-      >
-        Drop your review
-      </p>
-
       <AddReview />
-    </div>
+    </>
   )
 }
 
@@ -340,7 +343,7 @@ const RoomCalendar = ({ price }) => {
         id="checkInDate"
         selected={checkInDate}
         onChange={handleCheckInDateChange}
-        placeholderText={'check-in'}
+        placeholderText={'Check In'}
         dateFormat="yyyy-MM-dd"
         minDate={new Date()}
         excludeDates={timestamps}
@@ -351,7 +354,7 @@ const RoomCalendar = ({ price }) => {
         id="checkOutDate"
         selected={checkOutDate}
         onChange={handleCheckOutDateChange}
-        placeholderText={'check-out'}
+        placeholderText={'Check out'}
         dateFormat="yyyy-MM-dd"
         minDate={checkInDate}
         excludeDates={timestamps}
@@ -360,8 +363,8 @@ const RoomCalendar = ({ price }) => {
       />
       <button
         className="p-2 border-none bg-gradient-to-l from-pink-600
-              to-gray-600 text-white w-full rounded-md focus:outline-none
-              focus:ring-0"
+        to-gray-600 text-white w-full rounded-md focus:outline-none
+        focus:ring-0"
       >
         Book
       </button>
@@ -373,23 +376,25 @@ const RoomCalendar = ({ price }) => {
   )
 }
 
-const RoomComments = ({ review }) => {
+const RoomReview = ({ review }) => {
   return (
-    <div className="w-1/2 pr-5 space-y-5">
-      <div className="pt-10 flex items-center space-x-5">
+    <div className="w-1/2 pr-5 space-y-2">
+      <div className="pt-2 flex items-center space-x-2">
         <Identicon
           string={review.owner}
-          size={30}
-          className="rounded-full shadow-black shadow-sm"
+          size={20}
+          className="rounded-full shadow-gray-500 shadow-sm"
         />
-        <div>
-          <p className="text-xl font-semibold">
+        <div className="flex justify-start items-center space-x-2">
+          <p className="text-md font-semibold">
             {truncate(review.owner, 4, 4, 11)}{' '}
           </p>
-          <p className="text-slate-500 text-lg">{review.timestamp}</p>
+          <p className="text-slate-500 text-sm">{review.timestamp}</p>
         </div>
       </div>
-      <p className="text-xl">{review.reviewText}</p>
+      <p className="text-slate-500 text-sm w-full sm:w-4/5">
+        {review.reviewText}
+      </p>
     </div>
   )
 }

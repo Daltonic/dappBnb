@@ -65,7 +65,7 @@ const AuthModal = () => {
             </button>
           </div>
 
-          <div className="flex justify-between items-center mt-5">
+          <div className="flex justify-start items-center space-x-2 mt-5">
             <button
               onClick={handleSignUp}
               className="bg-[#ff385c] p-2 px-6 rounded-full text-white shadow-md

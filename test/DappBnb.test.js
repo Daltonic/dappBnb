@@ -124,20 +124,26 @@ describe('Contracts', () => {
       it('Should confirm apartment checking in', async () => {
         result = await contract.getBooking(id, bookingId)
         expect(result.checked).to.be.equal(false)
+        
+        result = await contract.connect(tenant1).tenantBooked(id)
+        expect(result).to.be.equal(false)
 
         await contract.connect(tenant1).checkInApartment(id, bookingId)
 
         result = await contract.getBooking(id, bookingId)
         expect(result.checked).to.be.equal(true)
+
+        result = await contract.connect(tenant1).tenantBooked(id)
+        expect(result).to.be.equal(true)
       })
 
       it('Should return the security fee', async ()=> {
-        result = await contract.returnSecurityFee()
+        result = await contract.securityFee()
         expect(result).to.be.equal(securityFee)
       })
 
       it('Should return the tax percent', async ()=> {
-        result = await contract.returnTaxPercent()
+        result = await contract.taxPercent()
         expect(result).to.be.equal(taxPercent)
       })
     })
