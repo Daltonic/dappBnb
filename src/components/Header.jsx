@@ -10,7 +10,7 @@ const Header = () => {
     <header className="flex justify-between items-center p-4 px-8 sm:px-10 md:px-14 border-b-2 border-b-slate-200 w-full">
       <Link to={'/'}>
         <p className="text-[#ff385c] flex items-center text-xl">
-          <FaAirbnb className=' font-semibold' />
+          <FaAirbnb className=" font-semibold" />
           DappBnb
         </p>
       </Link>
@@ -94,7 +94,7 @@ const ButtonGroup = () => {
         </Link>
 
         <button
-          type="button"
+          onClick={handleNavigate}
           className="
             rounded-r-full
             px-5
@@ -111,10 +111,7 @@ const ButtonGroup = () => {
             ease-in-out
           "
         >
-          <p className="flex items-center">
-            Search
-            <FaSearch className="mx-1" />
-          </p>
+          <p className="flex items-center">Chats</p>
         </button>
       </div>
     </div>
