@@ -59,13 +59,6 @@ const AddRoom = () => {
     setLinks(() => [...links])
   }
 
-  //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
-
-  // const isValidImage = (url) => {
-  //   let regex = /^https?:\/\/.*\/.*\.(png|gif|webp|jpeg|jpg)\??.*$/gim
-  //   return url.match(regex) ? true : false
-  // }
-
   const onReset = () => {
     setName('')
     setDescription('')
