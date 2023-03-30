@@ -105,6 +105,7 @@ const updateApartment = async ({
       }
     )
     await tx.wait()
+    await loadAppartment(id)
   } catch (err) {
     console.log(err)
   }
@@ -116,6 +117,7 @@ const deleteAppartment = async (id) => {
     const contract = await getEtheriumContract()
     tx = await contract.deleteAppartment(id, { from: connectedAccount })
     await tx.wait()
+    await loadAppartments()
   } catch (err) {
     reportError(err)
   }

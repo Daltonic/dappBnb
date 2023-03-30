@@ -99,13 +99,12 @@ const RoomButtons = ({ id, owner }) => {
   const navigate = useNavigate()
 
   const handleDelete = async () => {
-    if (confirm('Are you sure you want to delete?')) {
+    if (confirm(`Are you sure you want to delete Apartment ${id}?`)) {
       await toast.promise(
         new Promise(async (resolve, reject) => {
           await deleteAppartment(id)
             .then(async () => {
               navigate('/')
-              await loadAppartments()
               resolve()
             })
             .catch(() => reject())
