@@ -30,6 +30,7 @@ contract DappBnb is Ownable, ReentrancyGuard {
         uint price;
         bool checked;
         bool cancelled;
+        bool fundsClaimed;
     }
 
     struct ReviewStruct {
@@ -173,11 +174,13 @@ contract DappBnb is Ownable, ReentrancyGuard {
         return lastCheck;
     }
 
-    function checkInApartment(uint id, uint bookingId) public {    
+    function checkInApartment(uint id, uint bookingId) public nonReentrant {    
        require(msg.sender == bookingsOf[id][bookingId].tenant, "Unauthorized tenant!");
        require(!bookingsOf[id][bookingId].checked, "Apartment already checked on this date!");
+       require(!bookingsOf[id][bookingId].fundsClaimed, "Funds already claimed for this booking!");
        
        bookingsOf[id][bookingId].checked = true;
+       bookingsOf[id][bookingId].fundsClaimed = true;
        uint price = bookingsOf[id][bookingId].price;
        uint fee = (price * taxPercent) / 100;
 
@@ -188,17 +191,19 @@ contract DappBnb is Ownable, ReentrancyGuard {
        payTo(msg.sender, securityFee);
     }
 
-    function claimFunds(uint id, uint bookingId) public {
+    function claimFunds(uint id, uint bookingId) public nonReentrant {
         require(msg.sender == apartments[id].owner, "Unauthorized entity");
         require(!bookingsOf[id][bookingId].checked, "Apartment already checked on this date!");
+        require(!bookingsOf[id][bookingId].fundsClaimed, "Funds already claimed for this booking!");
 
+        bookingsOf[id][bookingId].fundsClaimed = true;
         uint price = bookingsOf[id][bookingId].price;
         uint fee = (price * taxPercent) / 100;
     
-       payTo(apartments[id].owner, (price - fee));
-       payTo(owner(), fee);
-       payTo(msg.sender, securityFee);
-    }
+        payTo(apartments[id].owner, (price - fee));
+        payTo(owner(), fee);
+        payTo(bookingsOf[id][bookingId].tenant, securityFee);
+   }
 
     function refundBooking(uint id, uint bookingId, uint date) public nonReentrant {
        require(!bookingsOf[id][bookingId].checked, "Apartment already checked on this date!");
