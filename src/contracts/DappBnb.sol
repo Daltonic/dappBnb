@@ -178,6 +178,11 @@ contract DappBnb is Ownable, ReentrancyGuard {
        require(msg.sender == bookingsOf[id][bookingId].tenant, "Unauthorized tenant!");
        require(!bookingsOf[id][bookingId].checked, "Apartment already checked on this date!");
        require(!bookingsOf[id][bookingId].fundsClaimed, "Funds already claimed for this booking!");
+       require(!bookingsOf[id][bookingId].cancelled, "Booking was cancelled");
+       
+       // Can only check in within 24 hours before or after the check-in date
+       require(block.timestamp >= bookingsOf[id][bookingId].date - 24 hours, "Too early to check in");
+       require(block.timestamp <= bookingsOf[id][bookingId].date + 24 hours, "Too late to check in");
        
        bookingsOf[id][bookingId].checked = true;
        bookingsOf[id][bookingId].fundsClaimed = true;
@@ -193,17 +198,27 @@ contract DappBnb is Ownable, ReentrancyGuard {
 
     function claimFunds(uint id, uint bookingId) public nonReentrant {
         require(msg.sender == apartments[id].owner, "Unauthorized entity");
-        require(!bookingsOf[id][bookingId].checked, "Apartment already checked on this date!");
-        require(!bookingsOf[id][bookingId].fundsClaimed, "Funds already claimed for this booking!");
+        require(!bookingsOf[id][bookingId].checked, "Apartment already checked in");
+        require(!bookingsOf[id][bookingId].fundsClaimed, "Funds already claimed for this booking");
+        require(!bookingsOf[id][bookingId].cancelled, "Booking was cancelled");
+        
+        // Can only claim funds if the check-in date has passed and tenant didn't check in
+        require(bookingsOf[id][bookingId].date < block.timestamp, "Cannot claim before check-in date");
+        
+        // Grace period of 24 hours after check-in date for late check-ins
+        require(block.timestamp > bookingsOf[id][bookingId].date + 24 hours, "Still within grace period");
 
         bookingsOf[id][bookingId].fundsClaimed = true;
         uint price = bookingsOf[id][bookingId].price;
         uint fee = (price * taxPercent) / 100;
     
+        // Owner gets the booking price minus platform fee
         payTo(apartments[id].owner, (price - fee));
+        // Platform gets the fee
         payTo(owner(), fee);
+        // Return security deposit to tenant
         payTo(bookingsOf[id][bookingId].tenant, securityFee);
-   }
+    }
 
     function refundBooking(uint id, uint bookingId, uint date) public nonReentrant {
        require(!bookingsOf[id][bookingId].checked, "Apartment already checked on this date!");
